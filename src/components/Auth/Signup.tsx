@@ -55,7 +55,7 @@ function Signup() {
             const accounts = await web3.eth.getAccounts();
             const walletAddress = accounts[0];
 
-            const response = await api.post("/api/v1/auth/wallet-login", { walletAddress });
+            await api.post("/api/v1/auth/wallet-login", { walletAddress });
 
             if (!accounts[0]) {
                 setError("No wallet address found. Please connect your wallet.");
