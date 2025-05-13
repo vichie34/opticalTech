@@ -59,9 +59,12 @@ function Signin() {
             // Send account to the backend for authentication
             const response = await api.post("api/v1/auth/login", { walletAddress: accounts[0] });
             console.log("Wallet login successful:", response.data);
+            const { token } = response.data;
+            localStorage.setItem("token", token); // Store token for future requests
         } catch (err) {
             console.error("Wallet connect error:", err);
         }
+        navigate("/dashboard");
     };
 
     return (

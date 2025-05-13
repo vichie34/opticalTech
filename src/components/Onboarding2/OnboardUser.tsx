@@ -43,7 +43,7 @@ function UserOnboarding() {
                         updateName={(value) => updateFormData("name", value)}
                         onNext={handleNext}
                     />
-                )
+                );
             case 2:
                 return (
                     <AgeStep
@@ -52,18 +52,18 @@ function UserOnboarding() {
                         onNext={handleNext}
                         onPrevious={handlePrevious}
                     />
-                )
+                );
+            case 3:
                 return (
                     <ConfirmationStep
                         formData={formData}
                         onPrevious={handlePrevious}
                     />
-                )
-                return <ConfirmationStep formData={formData} onPrevious={handlePrevious} />
+                );
             default:
-                return null
+                return null;
         }
-    }
+    };
 
     return (
         <div className="flex flex-col min-h-screen bg-white px-4 pt-10 pb-8">

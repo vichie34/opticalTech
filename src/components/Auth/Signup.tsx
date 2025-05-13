@@ -53,6 +53,9 @@ function Signup() {
             await provider.enable();
             const web3 = new Web3(provider);
             const accounts = await web3.eth.getAccounts();
+            const walletAddress = accounts[0];
+
+            const response = await api.post("/api/v1/auth/wallet-login", { walletAddress });
 
             if (!accounts[0]) {
                 setError("No wallet address found. Please connect your wallet.");
@@ -61,12 +64,12 @@ function Signup() {
 
             // Send wallet address to the backend for authentication
             const walletName = "DefaultWalletName"; // Replace with actual logic to determine wallet name
-            const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/wallet-login`, {
+            const walletResponse = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/wallet-login`, {
                 walletAddress: accounts[0],
                 walletName,
             });
 
-            const { token } = response.data;
+            const { token } = walletResponse.data;
             localStorage.setItem("token", token); // Store token for future requests
             navigate("/walletconnected");
         } catch (err) {
