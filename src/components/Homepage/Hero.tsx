@@ -1,4 +1,3 @@
-
 function Hero() {
     return (
         <div className="bg-[#020c1f] min-h-screen text-white">
@@ -41,11 +40,11 @@ function Hero() {
                         <p className="mt-6 text-gray-300">
                             No appointments. Mobile. Just accurate, intelligent eye exams. Free to use for all your needs.
                         </p>
-                        <div className="mt-8 flex space-x-4">
-                            <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-full">
+                        <div className="mt-8 flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-4">
+                            <button className="bg-blue-600 w-full hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-full shadow-md transition-transform transform hover:scale-105">
                                 Get Started
                             </button>
-                            <button className="border border-white hover:bg-white hover:text-[#020c1f] text-white font-medium py-3 px-6 rounded-full transition-colors">
+                            <button className="border border-white w-full hover:bg-white hover:text-[#020c1f] text-white font-medium py-3 px-6 rounded-full shadow-md transition-colors transform hover:scale-105">
                                 Virtual Consult
                             </button>
                         </div>

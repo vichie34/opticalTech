@@ -4,3 +4,20 @@
 body {
     font-family: 'Aeonik', sans-serif;
 }
+
+@media (min-width: 1025px) {
+    .test-container {
+        display: none;
+    }
+
+    .desktop-warning {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f9f9f9;
+        color: #333;
+        font-size: 1.25rem;
+        font-weight: 500;
+    }
+}

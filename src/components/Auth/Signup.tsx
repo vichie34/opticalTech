@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import api from "../../lib/utils";
 import { useNavigate } from "react-router-dom";
-import WalletConnectProvider from "@walletconnect/web3-provider";
 import Web3 from "web3";
 import axios from "axios";
 
@@ -45,40 +44,46 @@ function Signup() {
         setLoading(true);
         setError("");
         try {
-            const provider = new WalletConnectProvider({
-                infuraId: import.meta.env.VITE_REACT_APP_INFURA_ID,
-                bridge: "https://bridge.walletconnect.org",
-            });
+            // Check for Ethereum provider (MetaMask or any injected wallet)
+            const { ethereum } = window as any;
+            if (!ethereum) {
+                setError(
+                    "No crypto wallet found. Please install MetaMask or another wallet extension to continue, or use email signup."
+                );
+                setLoading(false);
+                return;
+            }
 
-            await provider.enable();
-            const web3 = new Web3(provider);
+            await ethereum.request({ method: "eth_requestAccounts" });
+            const web3 = new Web3(ethereum);
             const accounts = await web3.eth.getAccounts();
-            const walletAddress = accounts[0];
-
-            await api.post("/api/v1/auth/wallet-login", { walletAddress });
 
             if (!accounts[0]) {
                 setError("No wallet address found. Please connect your wallet.");
+                setLoading(false);
                 return;
             }
 
             // Send wallet address to the backend for authentication
-            const walletName = "DefaultWalletName"; // Replace with actual logic to determine wallet name
-            const walletResponse = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/wallet-login`, {
-                walletAddress: accounts[0],
-                walletName,
-            });
+            const walletName = ethereum.isMetaMask ? "MetaMask" : "Wallet";
+            const response = await axios.post(
+                `${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/wallet-login`,
+                {
+                    walletAddress: accounts[0],
+                    walletName,
+                }
+            );
 
-            const { token } = walletResponse.data;
+            const { token } = response.data;
             localStorage.setItem("token", token); // Store token for future requests
             navigate("/walletconnected");
         } catch (err) {
             if (axios.isAxiosError(err)) {
-                setError(err.response?.data?.message || "Failed to connect wallet. Redirecting to fallback...");
-                console.error("WalletConnect error:", err);
-
-                // Redirect to fallback route
-                navigate("/sign_in_with_wallet");
+                setError(
+                    err.response?.data?.message ||
+                    "Failed to connect wallet. Please try again or use email signup."
+                );
+                console.error("Wallet signup error:", err);
             } else {
                 setError("An unexpected error occurred. Please try again.");
                 console.error("Unexpected error:", err);

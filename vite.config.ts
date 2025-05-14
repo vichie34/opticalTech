@@ -1,46 +1,30 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { NodeGlobalsPolyfillPlugin } from "@esbuild-plugins/node-globals-polyfill";
-// import { nodePolyfills } from "vite-plugin-node-polyfills";
-import tailwindcss from '@tailwindcss/vite';
-import commonjs from 'vite-plugin-commonjs';
+import { nodePolyfills } from "vite-plugin-node-polyfills";
+import rollupPolyfillNode from "rollup-plugin-polyfill-node";
+import tailwindcss from "@tailwindcss/vite";
+
 
 export default defineConfig({
   plugins: [
+    nodePolyfills(), // Add Node.js polyfills
     react(),
     tailwindcss(),
-    // nodePolyfills({
-    //   globals: {
-    //     global: true, // Enable global polyfill
-    //   },
-    // }),
-    commonjs(), // Add CommonJS plugin
   ],
-  optimizeDeps: {
-    esbuildOptions: {
-      define: {
-        global: "globalThis",
-      },
-      plugins: [
-        NodeGlobalsPolyfillPlugin({
-          process: true,
-          buffer: true,
-        }),
-      ],
-    },
-  },
   build: {
     rollupOptions: {
-      output: {
-        globals: {
-          global: "globalThis",
-        },
-      },
+      plugins: [
+        rollupPolyfillNode(), // Add Rollup Node.js polyfills
+      ],
     },
   },
   resolve: {
     alias: {
-      buffer: "buffer",
+      buffer: "buffer", // Polyfill for Buffer
+      process: "process/browser", // Polyfill for process
     },
+  },
+  define: {
+    global: "globalThis", // Define global as globalThis
   },
 });
