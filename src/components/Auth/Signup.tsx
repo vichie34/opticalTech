@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import api from "../../lib/utils";
 import { useNavigate } from "react-router-dom";
+import WalletConnectProvider from "@walletconnect/web3-provider";
 import Web3 from "web3";
 import axios from "axios";
+import { toast } from 'sonner';
 
 function Signup() {
     const [showPassword, setShowPassword] = useState(false);
@@ -24,17 +26,20 @@ function Signup() {
         setError("");
         try {
             const response = await api.post("/api/v1/auth/register", { email, password });
-            const { token } = response.data;
-            localStorage.setItem("token", token); // Store token for future requests
-            console.log("Signup successful:", response.data);
-            navigate("/signin");
-        } catch (err) {
-            if (axios.isAxiosError(err)) {
-                setError(err.response?.data?.message || "Signup failed. Please try again.");
-            } else {
-                setError("An unexpected error occurred. Please try again.");
-            }
-            console.error("Signup error:", err);
+            // The API should return both token and refresh_token
+            const { token, refresh_token } = response.data;
+            // Save both tokens in localStorage
+            localStorage.setItem("token", token);
+            localStorage.setItem("refresh_token", refresh_token);
+
+            toast.success("Signup successful! Sign in to continue.");
+            // Optionally, navigate directly to signin and pass refresh_token
+            navigate("/signin", { state: { refresh_token } });
+        } catch (err: any) {
+            toast.error(
+                err.response?.data?.message ||
+                "Signup failed. Please try again."
+            );
         } finally {
             setLoading(false);
         }
@@ -44,52 +49,45 @@ function Signup() {
         setLoading(true);
         setError("");
         try {
-            // Check for Ethereum provider (MetaMask or any injected wallet)
-            const { ethereum } = window as any;
-            if (!ethereum) {
-                setError(
-                    "No crypto wallet found. Please install MetaMask or another wallet extension to continue, or use email signup."
-                );
-                setLoading(false);
-                return;
-            }
+            const provider = new WalletConnectProvider({
+                infuraId: import.meta.env.VITE_REACT_APP_INFURA_ID,
+                bridge: "https://bridge.walletconnect.org",
+            });
 
-            await ethereum.request({ method: "eth_requestAccounts" });
-            const web3 = new Web3(ethereum);
+            await provider.enable();
+            const web3 = new Web3(provider);
             const accounts = await web3.eth.getAccounts();
+            const walletAddress = accounts[0];
+
+            await api.post("/api/v1/auth/wallet-login", { walletAddress });
 
             if (!accounts[0]) {
                 setError("No wallet address found. Please connect your wallet.");
-                setLoading(false);
                 return;
             }
 
             // Send wallet address to the backend for authentication
-            const walletName = ethereum.isMetaMask ? "MetaMask" : "Wallet";
-            const response = await axios.post(
-                `${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/wallet-login`,
-                {
-                    walletAddress: accounts[0],
-                    walletName,
-                }
-            );
+            const walletName = "DefaultWalletName"; // Replace with actual logic to determine wallet name
+            const walletResponse = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/wallet-login`, {
+                walletAddress: accounts[0],
+                walletName,
+            });
 
-            const { token } = response.data;
+            const { token } = walletResponse.data;
             localStorage.setItem("token", token); // Store token for future requests
             navigate("/walletconnected");
         } catch (err) {
             if (axios.isAxiosError(err)) {
-                setError(
-                    err.response?.data?.message ||
-                    "Failed to connect wallet. Please try again or use email signup."
-                );
-                console.error("Wallet signup error:", err);
+                setError(err.response?.data?.message || "Failed to connect wallet. Redirecting to fallback...");
+                console.error("WalletConnect error:", err);
+
+                // Redirect to fallback route
+                navigate("/sign_in_with_wallet");
             } else {
                 setError("An unexpected error occurred. Please try again.");
                 console.error("Unexpected error:", err);
             }
         } finally {
-            setLoading(false);
         }
     };
 

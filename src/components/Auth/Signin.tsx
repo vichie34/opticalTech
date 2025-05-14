@@ -1,10 +1,13 @@
+/// <reference types="vite/client" />
+
+
 "use client";
 
 // Extend the Window interface to include the `ethereum` property
 declare global {
     interface Window {
         ethereum?: {
-            isMetaMask?: boolean;
+            isMetaMask?: boolean; // Optional: Check if MetaMask is installed
             request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
             on?: (event: string, callback: (...args: unknown[]) => void) => void;
         };
@@ -15,8 +18,10 @@ import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import api from "../../lib/utils";
 import { useNavigate } from "react-router-dom";
+import WalletConnectProvider from "@walletconnect/web3-provider";
 import Web3 from "web3";
-import axios from "axios";
+// import axios from "axios";
+import { toast } from 'sonner';
 
 function Signin() {
     const [showPassword, setShowPassword] = useState(false);
@@ -34,62 +39,74 @@ function Signin() {
         setLoading(true);
         setError("");
         try {
-            const response = await api.post('/api/v1/auth/login', { email, password });
+            const response = await api.post("/api/v1/auth/login", { email, password });
+            // Use the correct keys as returned by the API
             const { accessToken, refreshToken } = response.data;
+            localStorage.setItem("accessToken", accessToken);
+            localStorage.setItem("refresh_token", refreshToken);
 
-            localStorage.setItem('accessToken', accessToken);
-            localStorage.setItem('refreshToken', refreshToken);
-
-            console.log("Refresh token on login:", refreshToken);
-            console.log('Signin successful:', response.data);
-            navigate("/dashboard");
-        } catch (err) {
-            if (axios.isAxiosError(err)) {
-                setError(err.response?.data?.message || "Signin failed. Please try again.");
-            } else {
-                setError("An unexpected error occurred. Please try again.");
-            }
-            console.error("Signin error:", err);
+            // Pass refreshToken to dashboard via navigation state
+            navigate("/dashboard", { state: { refresh_token: refreshToken } });
+        } catch (err: any) {
+            toast.error(
+                err.response?.data?.message ||
+                "Signin failed. Please try again."
+            );
         } finally {
             setLoading(false);
         }
     };
 
     const handleWalletConnect = async () => {
-        setLoading(true);
-        setError("");
         try {
-            // Check for Ethereum provider (MetaMask or any injected wallet)
-            const ethereum = window.ethereum;
-            if (!ethereum) {
-                setError("No crypto wallet found. Please install MetaMask or another wallet extension to continue, or use email login.");
-                setLoading(false);
+            // Check if WalletConnectProvider is available
+            if (!window.ethereum && !WalletConnectProvider) {
+                setError("No wallet detected on this device. Please install a wallet like MetaMask or use WalletConnect.");
+                console.error("No wallet detected.");
                 return;
             }
 
-            await ethereum.request({ method: "eth_requestAccounts" });
-            const web3 = new Web3(ethereum as any);
+            // Initialize WalletConnect provider
+            const provider = new WalletConnectProvider({
+                infuraId: import.meta.env.VITE_REACT_APP_INFURA_ID, // Infura ID from environment variables
+                bridge: "https://bridge.walletconnect.org", // Use a valid bridge URL
+            });
+
+            // Enable the provider (connect to the wallet)
+            await provider.enable();
+
+            // Initialize Web3 with the provider
+            const web3 = new Web3(provider);
+
+            // Fetch connected accounts
             const accounts = await web3.eth.getAccounts();
-
-            if (!accounts[0]) {
-                setError("No wallet address found. Please connect your wallet.");
-                setLoading(false);
+            if (!accounts || accounts.length === 0) {
+                setError("No accounts found. Please ensure your wallet is connected.");
+                console.error("No accounts found.");
                 return;
             }
 
-            // Send wallet address to the backend for authentication
-            const walletName = ethereum.isMetaMask ? "MetaMask" : "Wallet";
-            const response = await api.post("api/v1/auth/login", { walletAddress: accounts[0], walletName });
+            console.log("Connected account:", accounts[0]);
+
+            // Send the wallet address to the backend for authentication
+            const response = await api.post("api/v1/auth/login", { walletAddress: accounts[0] });
+            console.log("Wallet login successful:", response.data);
+
+            // Store the token in localStorage
             const { token } = response.data;
             localStorage.setItem("token", token);
 
-            console.log("Wallet login successful:", response.data);
+            // Navigate to the next page
             navigate("/dashboard");
         } catch (err) {
-            setError("Failed to connect wallet. Please try again or use email login.");
-            console.error("Wallet connect error:", err);
-        } finally {
-            setLoading(false);
+            // Handle wallet connection errors
+            if (err instanceof Error && err.message.includes("User closed modal")) {
+                setError("Wallet connection was canceled. Please try again.");
+                console.error("Wallet connection canceled by the user.");
+            } else {
+                setError("An error occurred while connecting to the wallet. Please try again.");
+                console.error("Wallet connect error:", err);
+            }
         }
     };
 
@@ -110,8 +127,6 @@ function Signin() {
                 <button
                     className="w-full bg-[#02153e] text-white rounded-full py-4 px-6 flex items-center justify-center gap-2 mb-6"
                     onClick={handleWalletConnect}
-                    type="button"
-                    disabled={loading}
                 >
                     <img src="/assets/Vector.png" alt="" />
                     <span className="text-lg font-medium">Login in with Wallet</span>
@@ -156,7 +171,6 @@ function Signin() {
                         <button
                             className="absolute right-6 top-1/2 transform -translate-y-1/2"
                             onClick={togglePasswordVisibility}
-                            type="button"
                         >
                             {showPassword ? (
                                 <EyeOff className="h-5 w-5 text-[#6b7280]" />

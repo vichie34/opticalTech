@@ -3,7 +3,7 @@ import api from "../../../lib/utils";
 import { NavFrame } from "./Sections/Frame/NavFrame";
 import { Menu, Settings } from "lucide-react";
 import PermissionModal from "./Sections/Modal/PermissionModal";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 interface UserProfile {
     name: string;
@@ -26,19 +26,16 @@ export const Dashboard = (): JSX.Element => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
 
-    const toggleMenu = () => {
-        setIsMenuOpen((prev) => !prev);
-    };
+    const toggleMenu = () => setIsMenuOpen((prev) => !prev);
 
-    const fetchAccessToken = async (refreshToken: string): Promise<string | null> => {
+    // Refresh access token using refresh_token
+    const fetchAccessToken = async (refresh_token: string): Promise<string | null> => {
         try {
-            const response = await api.post('/api/v1/auth/refresh-token', { refreshToken });
+            const response = await api.post('/api/v1/auth/refresh-token', { refresh_token });
             const { accessToken } = response.data;
-
-            // Store the new access token in localStorage
             localStorage.setItem('accessToken', accessToken);
-
             return accessToken;
         } catch (err: any) {
             console.error('Error refreshing access token:', err);
@@ -46,85 +43,61 @@ export const Dashboard = (): JSX.Element => {
         }
     };
 
+    // Fetch user dashboard data
     const fetchUserData = async () => {
         setLoading(true);
         setError('');
-
         try {
-            // Fetch the access token from localStorage
+            // Get refresh_token from navigation state or localStorage
+            const refresh_token = location.state?.refresh_token || localStorage.getItem('refresh_token');
+            if (!refresh_token) throw new Error("Refresh token is missing. Please log in again.");
+
             let accessToken = localStorage.getItem('accessToken');
-            const refreshToken = localStorage.getItem('refreshToken');
 
-            if (!refreshToken) {
-                throw new Error("Refresh token is missing. Please log in again.");
-            }
-
-            // If access token is missing, use the refresh token to get a new one
+            // If no access token, use refresh_token to get a new one
             if (!accessToken) {
-                accessToken = await fetchAccessToken(refreshToken);
-                if (!accessToken) {
-                    throw new Error("Failed to refresh access token. Please log in again.");
-                }
+                accessToken = await fetchAccessToken(refresh_token);
+                if (!accessToken) throw new Error("Failed to refresh access token. Please log in again.");
             }
 
-            // Set the Authorization header with the access token
-            const response = await api.get('/api/v1/users/dashboard', {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                },
+            // Fetch user dashboard data
+            const response = await api.post('/api/v1/dashboard/me', {}, {
+                headers: { Authorization: `Bearer ${accessToken}` },
             });
-
-            // Set the user data
             setUserData(response.data);
 
-            // Check if permissions are granted
+            // Check permissions
             const permissionsGranted = localStorage.getItem('permissionsGranted');
-            if (!permissionsGranted) {
-                setIsPermissionModalOpen(true);
-            }
+            if (!permissionsGranted) setIsPermissionModalOpen(true);
+
         } catch (err: any) {
             console.error('Error fetching dashboard data:', err);
-
-            // Handle token expiration or invalid token
             if (err.response?.status === 401) {
                 setError("Session expired. Please log in again.");
-                localStorage.removeItem('accessToken'); // Clear the invalid access token
-                localStorage.removeItem('refreshToken'); // Clear the invalid refresh token
-                navigate('/signin'); // Redirect to the login page
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refresh_token');
+                navigate('/signin');
             } else {
-                // Handle other errors
-                const errorMessage =
-                    err.response?.data?.message || 'Failed to load dashboard data. Please try again later.';
-                setError(errorMessage);
+                setError(err.response?.data?.message || 'Failed to load dashboard data. Please try again later.');
             }
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => {
-        fetchUserData();
-    }, [navigate]);
+    useEffect(() => { fetchUserData(); }, [navigate]);
 
     const handleAllowAccess = async () => {
         try {
-            // Request access to the microphone and camera
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-            console.log('Access granted to mic and camera:', stream);
-
-            // Close the modal after access is granted
+            await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
             setIsPermissionModalOpen(false);
             localStorage.setItem('permissionsGranted', 'true');
-        } catch (err) {
-            console.error('Error accessing mic and camera:', err);
+        } catch {
             alert('Failed to access mic and camera. Please allow permissions.');
         }
     };
 
-    const handleCancelPermission = () => {
-        // Close the modal if the user cancels
-        setIsPermissionModalOpen(false);
-    };
+    const handleCancelPermission = () => setIsPermissionModalOpen(false);
 
     if (loading) {
         return (
@@ -134,8 +107,42 @@ export const Dashboard = (): JSX.Element => {
         );
     }
 
+    // Instead of returning just an error message, show the dashboard UI with fallback values
     if (error) {
-        return <div className="text-red-500 text-center mt-4">{error}</div>;
+        return (
+            <div className="relative w-full min-h-screen bg-[#f9f9f9] flex flex-col">
+                {/* Header */}
+                <header className="sticky top-0 z-10 w-full bg-white">
+                    <div className="flex h-11 items-center justify-between px-4 py-2.5 w-full">
+                        <Menu className="w-6 h-6 cursor-pointer" onClick={toggleMenu} />
+                        <div className="font-bold text-blue-600 text-base">OptiCheck</div>
+                        <Settings className="w-6 h-6 cursor-pointer" />
+                    </div>
+                </header>
+
+                {/* Slide-in Menu */}
+                <div className={`fixed top-0 left-0 h-full w-[245px] bg-[#f4f5f7] shadow-lg transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                    <NavFrame />
+                </div>
+
+                {/* Main Content */}
+                <main className="flex-1">
+                    <div className="p-4">
+                        <h1 className="text-xl font-bold">Welcome, User!</h1>
+                        <p>Your last test was on N/A.</p>
+                        <div className="text-red-500 mt-4">{error}</div>
+                    </div>
+                    <pre>{JSON.stringify({}, null, 2)}</pre>
+                </main>
+
+                {/* Permission Modal */}
+                <PermissionModal
+                    isOpen={isPermissionModalOpen}
+                    onAllow={handleAllowAccess}
+                    onCancel={handleCancelPermission}
+                />
+            </div>
+        );
     }
 
     return (
@@ -150,10 +157,7 @@ export const Dashboard = (): JSX.Element => {
             </header>
 
             {/* Slide-in Menu */}
-            <div
-                className={`fixed top-0 left-0 h-full w-[245px] bg-[#f4f5f7] shadow-lg transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'
-                    }`}
-            >
+            <div className={`fixed top-0 left-0 h-full w-[245px] bg-[#f4f5f7] shadow-lg transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 <NavFrame />
             </div>
 
@@ -165,7 +169,6 @@ export const Dashboard = (): JSX.Element => {
                 </div>
                 <pre>{JSON.stringify(userData?.stats, null, 2)}</pre>
             </main>
-
             {/* Permission Modal */}
             <PermissionModal
                 isOpen={isPermissionModalOpen}
