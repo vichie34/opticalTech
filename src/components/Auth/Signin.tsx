@@ -16,7 +16,7 @@ declare global {
 import { useState, useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import api from "../../lib/utils";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import Web3 from "web3";
 // import axios from "axios";
@@ -221,9 +221,9 @@ function Signin() {
                 {/* Sign Up Link */}
                 <div className="text-center mb-8">
                     <span className="text-[#1d1d1d]">Don't have an account? </span>
-                    <a href="/signup" className="text-[#3b99fc] font-medium">
+                    <Link to="/signup" className="text-[#3b99fc] font-medium">
                         Sign up
-                    </a>
+                    </Link>
                 </div>
             </div>
         </div >

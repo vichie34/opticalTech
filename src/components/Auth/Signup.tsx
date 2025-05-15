@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import api from "../../lib/utils";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 // import EthereumProvider from "@walletconnect/ethereum-provider"; //version2
 import WalletConnectProvider from "@walletconnect/web3-provider";  //version1
 import Web3 from "web3";
@@ -203,9 +203,9 @@ function Signup() {
 
                 <div className="text-center mb-8">
                     <span className="text-[#1d1d1d]">Already have an account? </span>
-                    <a href="/signin" className="text-[#3b99fc] font-medium">
+                    <Link to="/signin" className="text-[#3b99fc] font-medium">
                         Sign in
-                    </a>
+                    </Link>
                 </div>
             </div>
         </div>

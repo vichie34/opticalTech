@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-
+import { Link } from "react-router-dom"
 interface ConfirmationStepProps {
     formData: {
         name: string
@@ -41,7 +41,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({ formData, onPreviou
                     type="button"
                     className="w-full h-14 rounded-full bg-blue-600 text-white text-lg font-medium hover:bg-blue-700 transition-colors"
                 >
-                    <a href="/signup">Confirm</a>
+                    <Link to="/signup">Confirm</Link>
                 </button>
             </div>
         </div>
