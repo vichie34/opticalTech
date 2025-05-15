@@ -8,6 +8,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 interface UserProfile {
     name: string;
     lastTestDate: string;
+    avatarUrl?: string;
 }
 
 interface UserStats {
@@ -30,7 +31,6 @@ export const Dashboard = (): JSX.Element => {
 
     const toggleMenu = () => setIsMenuOpen((prev) => !prev);
 
-    // Refresh access token using refresh_token
     const fetchAccessToken = async (refresh_token: string): Promise<string | null> => {
         try {
             const response = await api.post('/api/v1/auth/refresh-token', { refresh_token });
@@ -43,30 +43,24 @@ export const Dashboard = (): JSX.Element => {
         }
     };
 
-    // Fetch user dashboard data
     const fetchUserData = async () => {
         setLoading(true);
         setError('');
         try {
-            // Get refresh_token from navigation state or localStorage
             const refresh_token = location.state?.refresh_token || localStorage.getItem('refresh_token');
             if (!refresh_token) throw new Error("Refresh token is missing. Please log in again.");
 
             let accessToken = localStorage.getItem('accessToken');
-
-            // If no access token, use refresh_token to get a new one
             if (!accessToken) {
                 accessToken = await fetchAccessToken(refresh_token);
                 if (!accessToken) throw new Error("Failed to refresh access token. Please log in again.");
             }
 
-            // Fetch user dashboard data
             const response = await api.post('/api/v1/dashboard/me', {}, {
                 headers: { Authorization: `Bearer ${accessToken}` },
             });
             setUserData(response.data);
 
-            // Check permissions
             const permissionsGranted = localStorage.getItem('permissionsGranted');
             if (!permissionsGranted) setIsPermissionModalOpen(true);
 
@@ -93,9 +87,6 @@ export const Dashboard = (): JSX.Element => {
         }
     }, []);
 
-
-    // useEffect(() => { fetchUserData(); }, [navigate]);
-
     const handleAllowAccess = async () => {
         try {
             await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
@@ -116,7 +107,6 @@ export const Dashboard = (): JSX.Element => {
         );
     }
 
-    // Instead of returning just an error message, show the dashboard UI with fallback values
     if (error) {
         return (
             <div className="relative w-full min-h-screen bg-[#f9f9f9] flex flex-col">
@@ -131,20 +121,21 @@ export const Dashboard = (): JSX.Element => {
 
                 {/* Slide-in Menu */}
                 <div className={`fixed top-0 left-0 h-full w-[245px] bg-[#f4f5f7] shadow-lg transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                    <NavFrame />
+                    <NavFrame user={userData?.profile} />
                 </div>
 
                 {/* Main Content */}
                 <main className="flex-1">
                     <div className="p-4">
-                        <h1 className="text-xl font-bold">Welcome, User!</h1>
-                        <p>Your last test was on N/A.</p>
+                        <h1 className="text-xl font-bold">
+                            Welcome, {userData?.profile?.name?.split(" ")[0] || 'User'}!
+                        </h1>
+                        <p>Your last test was on {userData?.profile?.lastTestDate || 'N/A'}.</p>
                         <div className="text-red-500 mt-4">{error}</div>
                     </div>
                     <pre>{JSON.stringify({}, null, 2)}</pre>
                 </main>
 
-                {/* Permission Modal */}
                 <PermissionModal
                     isOpen={isPermissionModalOpen}
                     onAllow={handleAllowAccess}
@@ -167,18 +158,20 @@ export const Dashboard = (): JSX.Element => {
 
             {/* Slide-in Menu */}
             <div className={`fixed top-0 left-0 h-full w-[245px] bg-[#f4f5f7] shadow-lg transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                <NavFrame />
+                <NavFrame user={userData?.profile} />
             </div>
 
             {/* Main Content */}
             <main className="flex-1">
                 <div className="p-4">
-                    <h1 className="text-xl font-bold">Welcome, {userData?.profile?.name || 'User'}!</h1>
+                    <h1 className="text-xl font-bold">
+                        Welcome, {userData?.profile?.name?.split(" ")[0] || 'User'}!
+                    </h1>
                     <p>Your last test was on {userData?.profile?.lastTestDate || 'N/A'}.</p>
                 </div>
                 <pre>{JSON.stringify(userData?.stats, null, 2)}</pre>
             </main>
-            {/* Permission Modal */}
+
             <PermissionModal
                 isOpen={isPermissionModalOpen}
                 onAllow={handleAllowAccess}

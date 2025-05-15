@@ -114,7 +114,7 @@ export const HowItWorks = (): JSX.Element => {
                 </div>
 
                 <Button className="w-full py-3 bg-blue-600 rounded-3xl font-['Manrope',Helvetica] font-bold text-[#fefefe] text-base">
-                    Start Vision Test
+                    <a href="/test">Start Vision Test</a>
                 </Button>
             </div>
 
