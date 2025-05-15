@@ -6,11 +6,13 @@ import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfil
 import rollupNodePolyFill from 'rollup-plugin-node-polyfills';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import type { Plugin } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   plugins: [
     react(),
     nodePolyfills(),
+    tailwindcss(),
   ],
   optimizeDeps: {
     esbuildOptions: {
@@ -29,7 +31,10 @@ export default defineConfig({
       plugins: [
         rollupNodePolyFill() as unknown as Plugin, // 👈 Fix the typing here
       ]
-    }
+    },
+    commonjsOptions: {
+      transformMixedEsModules: true,
+    },
   },
   resolve: {
     alias: {
