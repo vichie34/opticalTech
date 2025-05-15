@@ -42,10 +42,10 @@ function Hero() {
                         </p>
                         <div className="mt-8 flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-4">
                             <button className="bg-blue-600 w-full hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-full shadow-md transition-transform transform hover:scale-105">
-                                Get Started
+                                <a href="/Onboarding">Get Started</a>
                             </button>
                             <button className="border border-white w-full hover:bg-white hover:text-[#020c1f] text-white font-medium py-3 px-6 rounded-full shadow-md transition-colors transform hover:scale-105">
-                                Virtual Consult
+                                <a href="/Onboarding">Virtual Consult</a>
                             </button>
                         </div>
                     </div>

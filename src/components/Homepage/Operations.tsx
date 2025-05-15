@@ -3,10 +3,8 @@ const HowItWorks = () => {
         {
             number: 1,
             icon: (
-                <svg className="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                    <path d="M18 8h2v2h-2zm0-4h2v2h-2z" />
-                </svg>
+                <img src="/assets/div (2).svg" alt="" />
+
             ),
             title: "Sign Up & Set Profile",
             description:
@@ -15,9 +13,7 @@ const HowItWorks = () => {
         {
             number: 2,
             icon: (
-                <svg className="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z" />
-                </svg>
+                <img src="/assets/div (1).svg" alt="" />
             ),
             title: "Take Smart Tests",
             description: "Complete AI-guided vision tests at your own pace.",
@@ -25,9 +21,7 @@ const HowItWorks = () => {
         {
             number: 3,
             icon: (
-                <svg className="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
-                </svg>
+                <img src="/assets/div.svg" alt="" />
             ),
             title: "Get Instant Results",
             description: "Receive detailed results and recommendations immediately.",
@@ -36,8 +30,16 @@ const HowItWorks = () => {
 
     return (
         <div
-            className="relative bg-[#001337] py-10 px-6 overflow-hidden mx-1 rounded-none md:rounded-tl-[250px] md:rounded-br-[250px]"
+            className="relative bg-[#001337] py-10 px-6 overflow-hidden  mx-1 rounded-[10px] md:rounded-tl-[250px] md:rounded-br-[250px]"
         >
+            <div
+                className="absolute inset-0 opacity-5"
+                style={{
+                    backgroundImage:
+                        "linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)",
+                    backgroundSize: "40px 40px",
+                }}
+            ></div>
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 className="text-2xl font-bold text-center text-white mb-12">How It Works</h2>
 

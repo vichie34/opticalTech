@@ -50,9 +50,7 @@ const BuiltForEveryone: React.FC = () => {
                         title="Kids Mode"
                         description="Engaging cartoon visuals and friendly voice guidance make testing fun and easy for children"
                         icon={
-                            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2C8.69 2 6 4.69 6 8c0 2.97 2.16 5.43 5 5.91V16h-2v2h2v2h2v-2h2v-2h-2v-2.09c2.84-.48 5-2.94 5-5.91 0-3.31-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z" />
-                            </svg>
+                            <img src="/assets/Frame (2).svg" />
                         }
                         imagePosition="left"
                     />
@@ -61,9 +59,8 @@ const BuiltForEveryone: React.FC = () => {
                         title="Elderly Mode"
                         description="High contrast interface with larger fonts for improved visibility and easier navigation"
                         icon={
-                            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
-                            </svg>
+                            <img src="/assets/Frame (3).svg" />
+
                         }
                         imagePosition="right"
                     />
