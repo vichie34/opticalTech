@@ -18,10 +18,10 @@ const Testimonial: React.FC<TestimonialProps> = ({ name, title, quote, imageSrc 
                 />
                 <div>
                     <h3 className="font-medium">{name}</h3>
-                    <p className="text-sm">{title}</p>
+                    <p className="text-sm md:text-gray-500">{title}</p>
                 </div>
             </div>
-            <p className="text-sm leading-relaxed">{quote}</p>
+            <p className="text-sm leading-relaxed md:text-gray-500">{quote}</p>
         </div>
     );
 };
