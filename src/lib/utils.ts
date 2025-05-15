@@ -17,7 +17,7 @@ const api = axios.create({
 });
 
 const walletURL = import.meta.env.VITE_INFURA_ID;
-console.log("Wallet URL:", walletURL); // Confirm it's not undefined
+// console.log("Wallet URL:", walletURL); // Confirm it's not undefined
 axios
     .post(`https://mainnet.infura.io/v3/${walletURL}`, {
         jsonrpc: "2.0",

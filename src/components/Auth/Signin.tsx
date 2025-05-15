@@ -99,8 +99,14 @@ function Signin() {
                     id: 1
                 })
             });
+            // console.log(import.meta.env.VITE_API_BACKEND_URL);
+            console.log("About to call fetch...");
+            console.log("Backend URL:", import.meta.env.VITE_API_BACKEND_URL);
 
-
+            if (!rpcResponse.ok) {
+                // setError("Failed to fetch block number. Please try again.");
+                toast.error("Failed to fetch block number. Please try again."); return;
+            }
             const json = await rpcResponse.json();
             const latestBlock = parseInt(json.result, 16);
             setblockNumber(latestBlock.toString());
