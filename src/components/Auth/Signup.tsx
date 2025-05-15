@@ -1,4 +1,5 @@
 "use client";
+console.log("Available ENV:", import.meta.env);
 
 import { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
@@ -14,7 +15,7 @@ function Signup() {
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
+    // const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -24,7 +25,6 @@ function Signup() {
 
     const handleSignup = async () => {
         setLoading(true);
-        setError("");
         try {
             const response = await api.post("/api/v1/auth/register", { email, password });
             const token = response.data.token;
@@ -50,11 +50,18 @@ function Signup() {
 
     const handleWalletSignup = async () => {
         setLoading(true);
-        setError("");
         try {
+            const infuraId = import.meta.env.VITE_INFURA_ID;
+            console.log("Infura ID:", infuraId); // Confirm it's not undefined
+
+            if (!infuraId) {
+                throw new Error("Missing Infura ID in environment variables.");
+            }
+
             const provider = new WalletConnectProvider({
-                infuraId: import.meta.env.VITE_INFURA_ID,
+                infuraId,
             });
+
 
 
             await provider.enable();
@@ -65,7 +72,7 @@ function Signup() {
             await api.post("/api/v1/auth/wallet-login", { walletAddress });
 
             if (!accounts[0]) {
-                setError("No wallet address found. Please connect your wallet.");
+                toast.error("No wallet address found. Please connect your wallet.");
                 return;
             }
 
@@ -80,13 +87,21 @@ function Signup() {
             navigate("/walletconnected");
         } catch (err) {
             if (axios.isAxiosError(err)) {
-                setError(err.response?.data?.message || "Failed to connect wallet. Redirecting to fallback...");
-                console.error("WalletConnect error:", err);
+                toast.error(
+                    axios.isAxiosError(err)
+                        ? err.response?.data?.message || "Failed to connect wallet. Redirecting to fallback..."
+                        : "An unexpected error occurred. Please try again."
+                );
+
 
                 navigate("/sign_in_with_wallet");
             } else {
-                setError("An unexpected error occurred. Please try again.");
-                console.error("Unexpected error:", err);
+                toast.error(
+                    axios.isAxiosError(err)
+                        ? err.response?.data?.message || "Failed to connect wallet. Redirecting to fallback..."
+                        : "An unexpected error occurred. Please try again."
+                );
+
             }
         } finally {
         }
@@ -103,7 +118,8 @@ function Signup() {
                 console.log("Token refreshed successfully.");
             } catch (err) {
                 console.error("Token refresh failed:", err);
-                setError("Session expired. Please log in again.");
+                // setError("Session expired. Please log in again.");
+                toast.error("Session expired. Please log in again.");
                 navigate("/signin");
             }
         };
@@ -136,8 +152,6 @@ function Signup() {
                 </div>
 
                 <div className="mb-6">
-                    {error && <p className="text-red-500">{error}</p>}
-
                     <label htmlFor="email" className="block text-[#1d1d1d] text-xl mb-2">
                         Email
                     </label>

@@ -1,6 +1,5 @@
 /// <reference types="vite/client" />
 
-
 "use client";
 
 // Extend the Window interface to include the `ethereum` property
@@ -29,6 +28,7 @@ function Signin() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [blockNumber, setblockNumber] = useState<string>("");
     const navigate = useNavigate();
 
     const togglePasswordVisibility = () => {
@@ -59,56 +59,64 @@ function Signin() {
 
     const handleWalletConnect = async () => {
         try {
-            // Check if WalletConnectProvider is available
-            if (!window.ethereum && !WalletConnectProvider) {
-                setError("No wallet detected on this device. Please install a wallet like MetaMask or use WalletConnect.");
-                console.error("No wallet detected.");
-                return;
-            }
-
-            // Initialize WalletConnect provider
             const provider = new WalletConnectProvider({
-                infuraId: import.meta.env.VITE_REACT_APP_INFURA_ID, // Infura ID from environment variables
-                bridge: "https://bridge.walletconnect.org", // Use a valid bridge URL
+                infuraId: import.meta.env.VITE_REACT_APP_INFURA_ID,
+                bridge: "https://bridge.walletconnect.org",
             });
+            const infuraId = import.meta.env.VITE_REACT_APP_INFURA_ID;
+            console.log("Infura ID:", infuraId); // Should log your ID
 
-            // Enable the provider (connect to the wallet)
+
             await provider.enable();
 
-            // Initialize Web3 with the provider
             const web3 = new Web3(provider);
-
-            // Fetch connected accounts
             const accounts = await web3.eth.getAccounts();
+
             if (!accounts || accounts.length === 0) {
                 setError("No accounts found. Please ensure your wallet is connected.");
-                console.error("No accounts found.");
                 return;
             }
 
-            console.log("Connected account:", accounts[0]);
+            const walletAddress = accounts[0];
+            console.log("Connected wallet:", walletAddress);
 
-            // Send the wallet address to the backend for authentication
-            const response = await api.post("api/v1/auth/login", { walletAddress: accounts[0] });
-            console.log("Wallet login successful:", response.data);
-
-            // Store the token in localStorage
-            const { token } = response.data;
+            // Step 1: Authenticate wallet with your backend
+            const authResponse = await api.post("api/v1/auth/login", { walletAddress });
+            const { token } = authResponse.data;
             localStorage.setItem("token", token);
+            console.log("Wallet login successful.");
 
-            // Navigate to the next page
+            // Step 2: Fetch block number via your backend RPC proxy
+            const rpcResponse = await fetch("http://localhost:3001/rpc", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    jsonrpc: "2.0",
+                    method: "eth_blockNumber",
+                    params: [],
+                    id: 1
+                })
+            });
+
+            const json = await rpcResponse.json();
+            const latestBlock = parseInt(json.result, 16);
+            setblockNumber(latestBlock.toString());
+            console.log("Latest block number:", latestBlock);
+
+            // Navigate user
             navigate("/dashboard");
         } catch (err) {
-            // Handle wallet connection errors
             if (err instanceof Error && err.message.includes("User closed modal")) {
                 setError("Wallet connection was canceled. Please try again.");
-                console.error("Wallet connection canceled by the user.");
             } else {
-                setError("An error occurred while connecting to the wallet. Please try again.");
-                console.error("Wallet connect error:", err);
+                setError("An error occurred while connecting to the wallet.");
             }
+            console.error("WalletConnect error:", err);
         }
     };
+
 
     return (
         <div className="flex flex-col min-h-screen bg-[#f9f9f9] px-6 py-8">
@@ -183,7 +191,7 @@ function Signin() {
 
                 {/* Forgot Password */}
                 <div className="flex justify-end mb-8">
-                    <a href="api/v1/auth/change-password" className="text-[#1d1d1d]">
+                    <a href="api/v1/auth/change-password" className="text-[#1d1d1d">
                         Forgot password?
                     </a>
                 </div>
@@ -208,3 +216,4 @@ function Signin() {
 }
 
 export default Signin;
+
