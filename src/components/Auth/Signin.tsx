@@ -13,7 +13,7 @@ declare global {
     }
 }
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import api from "../../lib/utils";
 import { useNavigate } from "react-router-dom";
@@ -125,6 +125,13 @@ function Signin() {
         }
     };
 
+    useEffect(() => {
+        if (blockNumber) {
+            // Do something with the blockNumber, now that it has a value
+            console.log("Block number changed:", blockNumber);
+        }
+    }, [blockNumber]);
+
 
     return (
         <div className="flex flex-col min-h-screen bg-[#f9f9f9] px-6 py-8">
@@ -137,6 +144,7 @@ function Signin() {
             {/* Login Form */}
             <div className="flex-1">
                 <h1 className="text-3xl font-bold text-[#1d1d1d] mb-1">Log in to Opticheck</h1>
+                <h1 className="text-3xl font-bold text-[#1d1d1d mb-1">Log in to Opticheck</h1>
                 <p className="text-[#6b7280] text-lg mb-8">Welcome back</p>
 
                 {/* Wallet Login Button */}
@@ -200,8 +208,9 @@ function Signin() {
                 {/* Forgot Password */}
                 <div className="flex justify-end mb-8">
                     <a href="api/v1/auth/change-password" className="text-[#1d1d1d">
-                        Forgot password?
-                    </a>
+                        <a href="api/v1/auth/change-password" className="text-[#1d1d1d]">
+                            Forgot password?
+                        </a>
                 </div>
 
                 {/* Login Button */}
@@ -224,4 +233,5 @@ function Signin() {
 }
 
 export default Signin;
+
 
