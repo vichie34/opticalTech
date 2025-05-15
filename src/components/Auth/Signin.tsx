@@ -143,7 +143,6 @@ function Signin() {
 
             {/* Login Form */}
             <div className="flex-1">
-                <h1 className="text-3xl font-bold text-[#1d1d1d] mb-1">Log in to Opticheck</h1>
                 <h1 className="text-3xl font-bold text-[#1d1d1d mb-1">Log in to Opticheck</h1>
                 <p className="text-[#6b7280] text-lg mb-8">Welcome back</p>
 
@@ -207,10 +206,9 @@ function Signin() {
 
                 {/* Forgot Password */}
                 <div className="flex justify-end mb-8">
-                    <a href="api/v1/auth/change-password" className="text-[#1d1d1d">
-                        <a href="api/v1/auth/change-password" className="text-[#1d1d1d]">
-                            Forgot password?
-                        </a>
+                    <a href="api/v1/auth/change-password" className="text-[#1d1d1d]">
+                        Forgot password?
+                    </a>
                 </div>
 
                 {/* Login Button */}
@@ -233,5 +231,4 @@ function Signin() {
 }
 
 export default Signin;
-
 
