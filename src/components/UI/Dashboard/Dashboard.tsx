@@ -85,7 +85,16 @@ export const Dashboard = (): JSX.Element => {
         }
     };
 
-    useEffect(() => { fetchUserData(); }, [navigate]);
+    useEffect(() => {
+        const accessToken = localStorage.getItem('accessToken');
+        const refresh_token = localStorage.getItem('refresh_token');
+        if (accessToken || refresh_token) {
+            fetchUserData();
+        }
+    }, []);
+
+
+    // useEffect(() => { fetchUserData(); }, [navigate]);
 
     const handleAllowAccess = async () => {
         try {

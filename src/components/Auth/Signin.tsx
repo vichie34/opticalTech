@@ -30,6 +30,7 @@ function Signin() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const [blockNumber, setBlockNumber] = useState(null);
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword)
@@ -85,6 +86,7 @@ function Signin() {
                 console.error("No accounts found.");
                 return;
             }
+
 
             console.log("Connected account:", accounts[0]);
 

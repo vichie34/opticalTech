@@ -16,22 +16,6 @@ const api = axios.create({
     },
 });
 
-const walletURL = import.meta.env.VITE_REACT_APP_INFURA_ID;
-
-axios
-    .post(`https://mainnet.infura.io/v3/${walletURL}`, {
-        jsonrpc: "2.0",
-        method: "eth_blockNumber",
-        params: [],
-        id: 1,
-    })
-    .then((response) => {
-        console.log(response.data);
-    })
-    .catch((error) => {
-        console.error(error);
-    });
-
 
 // Add interceptors for error handling or token injection if needed
 api.interceptors.request.use((config) => {
