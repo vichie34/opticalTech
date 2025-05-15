@@ -87,7 +87,7 @@ function Signin() {
             console.log("Wallet login successful.");
 
             // Step 2: Fetch block number via your backend RPC proxy
-            const rpcResponse = await fetch("http://localhost:3001/rpc", {
+            const rpcResponse = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/rpc`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -99,6 +99,7 @@ function Signin() {
                     id: 1
                 })
             });
+
 
             const json = await rpcResponse.json();
             const latestBlock = parseInt(json.result, 16);
