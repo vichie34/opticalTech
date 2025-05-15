@@ -26,7 +26,7 @@ function Signin() {
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
+    // const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [blockNumber, setblockNumber] = useState<string>("");
     const navigate = useNavigate();
@@ -37,7 +37,7 @@ function Signin() {
 
     const handleSignin = async () => {
         setLoading(true);
-        setError("");
+        // setError("");
         try {
             const response = await api.post("/api/v1/auth/login", { email, password });
             // Use the correct keys as returned by the API
@@ -60,10 +60,10 @@ function Signin() {
     const handleWalletConnect = async () => {
         try {
             const provider = new WalletConnectProvider({
-                infuraId: import.meta.env.VITE_REACT_APP_INFURA_ID,
+                infuraId: import.meta.env.VITE_INFURA_ID,
                 bridge: "https://bridge.walletconnect.org",
             });
-            const infuraId = import.meta.env.VITE_REACT_APP_INFURA_ID;
+            const infuraId = import.meta.env.VITE_INFURA_ID;
             console.log("Infura ID:", infuraId); // Should log your ID
 
 
@@ -73,8 +73,8 @@ function Signin() {
             const accounts = await web3.eth.getAccounts();
 
             if (!accounts || accounts.length === 0) {
-                setError("No accounts found. Please ensure your wallet is connected.");
-                return;
+                // setError("No accounts found. Please ensure your wallet is connected.");
+                toast.error("No accounts found. Please ensure your wallet is connected."); return;
             }
 
             const walletAddress = accounts[0];
@@ -109,9 +109,10 @@ function Signin() {
             navigate("/dashboard");
         } catch (err) {
             if (err instanceof Error && err.message.includes("User closed modal")) {
-                setError("Wallet connection was canceled. Please try again.");
+                // setError("Wallet connection was canceled. Please try again.");
+                toast.error("Wallet connection was canceled. Please try again.");
             } else {
-                setError("An error occurred while connecting to the wallet.");
+                toast.error("An error occurred while connecting to the wallet. Please try again.");
             }
             console.error("WalletConnect error:", err);
         }
@@ -147,7 +148,7 @@ function Signin() {
 
                 {/* Email Input */}
                 <div className="mb-6">
-                    {error && <p className="text-red-500">{error}</p>}
+                    {/* {error && <p className="text-red-500">{error}</p>} */}
 
                     <label htmlFor="email" className="block text-[#1d1d1d] text-xl mb-2">
                         Email

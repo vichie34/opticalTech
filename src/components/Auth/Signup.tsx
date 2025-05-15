@@ -1,5 +1,4 @@
 "use client";
-console.log("Available ENV:", import.meta.env);
 
 import { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
@@ -52,7 +51,7 @@ function Signup() {
         setLoading(true);
         try {
             const infuraId = import.meta.env.VITE_INFURA_ID;
-            console.log("Infura ID:", infuraId); // Confirm it's not undefined
+            // console.log("Infura ID:", infuraId); // Confirm it's not undefined
 
             if (!infuraId) {
                 throw new Error("Missing Infura ID in environment variables.");
