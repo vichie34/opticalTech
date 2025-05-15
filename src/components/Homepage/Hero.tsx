@@ -31,7 +31,7 @@ function Hero() {
                     </div>
 
                     <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-full">
-                        <a href="/Onboarding">Start Free Trial</a>
+                        <Link to="/Onboarding">Start Free Trial</Link>
                     </button>
                 </nav>
 
