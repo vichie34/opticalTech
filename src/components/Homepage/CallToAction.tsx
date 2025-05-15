@@ -1,4 +1,5 @@
 import type React from "react"
+import { Link } from "react-router-dom"
 // import eyeImage from ""
 
 const CallToAction: React.FC = () => {
@@ -20,7 +21,7 @@ const CallToAction: React.FC = () => {
                         <h2 className="text-2xl font-bold text-gray-900 mb-4">Start Testing Today</h2>
                         <p className="text-gray-600 mb-6">All you need is a screen and a few minutes.</p>
                         <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-full transition-colors">
-                            <a href="/howitworks">Start Vision Test</a>
+                            <Link to="/howitworks">Start Vision Test</Link>
                         </button>
                     </div>
                 </div>

@@ -17,7 +17,7 @@ const App = () => {
   return (
     <>
       <Toaster richColors position="top-center" />
-      <Router basename="/myapp">
+      <Router>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<OptiCheckWelcome />} />

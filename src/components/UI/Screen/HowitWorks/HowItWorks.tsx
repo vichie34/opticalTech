@@ -3,6 +3,7 @@ import { Button } from "../../ux/button";
 import { Card, CardContent } from "../../ux/card";
 import { NavFrame } from "../../Dashboard/Sections/Frame/NavFrame";
 import { JSX, useState } from 'react';
+import { Link } from "react-router-dom";
 
 export const HowItWorks = (): JSX.Element => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -114,7 +115,7 @@ export const HowItWorks = (): JSX.Element => {
                 </div>
 
                 <Button className="w-full py-3 bg-blue-600 rounded-3xl font-['Manrope',Helvetica] font-bold text-[#fefefe] text-base">
-                    <a href="/test">Start Vision Test</a>
+                    <Link to="/test">Start Vision Test</Link>
                 </Button>
             </div>
 

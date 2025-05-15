@@ -204,11 +204,6 @@ export const TestResult = (): JSX.Element => {
                     </div>
                 </div>
             </div>
-
-            {/* Home Indicator */}
-            <div className="flex flex-col w-[375px] items-start gap-2.5 px-[120px] py-1.5 fixed top-[795px] left-0">
-                <div className="relative self-stretch w-full h-[5px] bg-[#353535] rounded-[10px]" />
-            </div>
         </main>
     );
 };

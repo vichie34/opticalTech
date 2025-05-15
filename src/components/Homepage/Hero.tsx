@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom"
+
 function Hero() {
     return (
         <div className="bg-[#020c1f] min-h-screen text-white">
@@ -8,7 +10,9 @@ function Hero() {
                         <svg className="h-6 w-6 text-blue-500 mr-2" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
                         </svg>
-                        <span className="font-semibold text-lg">OptiCheck</span>
+                        <Link to="/">
+                            <span className="font-semibold text-lg">OptiCheck</span>
+                        </Link>
                     </div>
 
                     <div className="hidden md:flex items-center space-x-8">
@@ -42,10 +46,10 @@ function Hero() {
                         </p>
                         <div className="mt-8 flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-4">
                             <button className="bg-blue-600 w-full hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-full shadow-md transition-transform transform hover:scale-105">
-                                <a href="/Onboarding">Get Started</a>
+                                <Link to="/Onboarding">Get Started</Link>
                             </button>
                             <button className="border border-white w-full hover:bg-white hover:text-[#020c1f] text-white font-medium py-3 px-6 rounded-full shadow-md transition-colors transform hover:scale-105">
-                                <a href="/Onboarding">Virtual Consult</a>
+                                <Link to="/Onboarding">Virtual Consult</Link>
                             </button>
                         </div>
                     </div>
