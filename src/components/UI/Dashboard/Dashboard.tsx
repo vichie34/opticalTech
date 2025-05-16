@@ -28,6 +28,7 @@ export const Dashboard = (): JSX.Element => {
     const [error, setError] = useState("");
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
+    const [showFallback, setShowFallback] = useState(false); // ✅ Fallback state
     const navigate = useNavigate();
 
     const toggleMenu = () => setIsMenuOpen((prev) => !prev);
@@ -35,6 +36,7 @@ export const Dashboard = (): JSX.Element => {
     const fetchUserData = async () => {
         setLoading(true);
         setError("");
+        setShowFallback(false); // ✅ Reset fallback on retry
 
         try {
             const accessToken = localStorage.getItem("accessToken");
@@ -58,26 +60,21 @@ export const Dashboard = (): JSX.Element => {
         } catch (err: any) {
             console.error("Error fetching dashboard data:", err);
 
-            if (err.response?.status === 401) {
-                if (localStorage.getItem("refreshToken")) {
-                    try {
-                        const refreshResponse = await api.post(
-                            "/api/v1/auth/refresh-access-token",
-                            {},
-                            {
-                                headers: {
-                                    Authorization: `Bearer ${localStorage.getItem("refreshToken")}`,
-                                },
-                            }
-                        );
-                        localStorage.setItem("accessToken", refreshResponse.data.accessToken);
-                        await fetchUserData(); // Retry with new token
-                        return;
-                    } catch {
-                        setError("Session expired. Please log in again.");
-                        navigate("/signin");
-                    }
-                } else {
+            if (err.response?.status === 401 && localStorage.getItem("refreshToken")) {
+                try {
+                    const refreshResponse = await api.post(
+                        "/api/v1/auth/refresh-access-token",
+                        {},
+                        {
+                            headers: {
+                                Authorization: `Bearer ${localStorage.getItem("refreshToken")}`,
+                            },
+                        }
+                    );
+                    localStorage.setItem("accessToken", refreshResponse.data.accessToken);
+                    await fetchUserData(); // Retry with new token
+                    return;
+                } catch {
                     setError("Session expired. Please log in again.");
                     navigate("/signin");
                 }
@@ -97,6 +94,16 @@ export const Dashboard = (): JSX.Element => {
         }
     }, []);
 
+    // ✅ Show fallback if loading exceeds 5 seconds
+    useEffect(() => {
+        if (loading) {
+            const timeout = setTimeout(() => {
+                setShowFallback(true);
+            }, 5000);
+            return () => clearTimeout(timeout);
+        }
+    }, [loading]);
+
     const handleAllowAccess = async () => {
         try {
             await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
@@ -109,7 +116,8 @@ export const Dashboard = (): JSX.Element => {
 
     const handleCancelPermission = () => setIsPermissionModalOpen(false);
 
-    if (loading) {
+    // ✅ Loader (brief)
+    if (loading && !showFallback) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-white">
                 <div className="w-16 h-16 border-4 border-blue-500 border-t-black rounded-full animate-spin"></div>
@@ -117,20 +125,18 @@ export const Dashboard = (): JSX.Element => {
         );
     }
 
-    // Fallback UI if user is logged in but userData failed to load
-    if (!loading && (!userData || error)) {
+    // ✅ Fallback UI after timeout or error
+    if (showFallback || (!loading && (!userData || error))) {
         return (
             <div className="relative w-full min-h-screen bg-[#f9f9f9] flex flex-col">
-                {/* Permission Modal */}
                 <PermissionModal
                     isOpen={isPermissionModalOpen}
                     onAllow={handleAllowAccess}
                     onCancel={handleCancelPermission}
                 />
 
-                {/* Header */}
                 <header className="sticky top-0 z-10 w-full bg-white">
-                    <div className="flex flex-col w-full items-start sticky top-0 z-10 bg-white">
+                    <div className="flex flex-col w-full items-start">
                         <div className="flex h-11 items-center justify-between px-4 py-2.5 w-full">
                             <Menu className="w-6 h-6 cursor-pointer" onClick={toggleMenu} />
                             <div className="font-bold text-blue-600 text-base text-center font-['Merriweather_Sans',Helvetica]">
@@ -141,21 +147,15 @@ export const Dashboard = (): JSX.Element => {
                     </div>
                 </header>
 
-                {/* Slide-in Menu */}
-                <div
-                    className={`fixed top-0 left-0 h-full w-[245px] bg-[#f4f5f7] shadow-lg transform transition-transform duration-300 ${isMenuOpen ? "translate-x-0" : "-translate-x-full"
-                        }`}
-                >
+                <div className={`fixed top-0 left-0 h-full w-[245px] bg-[#f4f5f7] shadow-lg transform transition-transform duration-300 ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
                     <NavFrame />
                 </div>
 
-                {/* Main Content */}
                 <main className="flex-1">
                     <div className="p-4">
                         <h1 className="text-xl font-bold">Welcome, {userData?.profile?.name || "User"}!</h1>
                         <p>Your last test was on {userData?.profile?.lastTestDate || "N/A"}.</p>
 
-                        {/* Show error and retry button */}
                         {error && (
                             <div className="mt-4">
                                 <p className="text-red-500">{error}</p>
@@ -175,7 +175,7 @@ export const Dashboard = (): JSX.Element => {
         );
     }
 
-    // Normal dashboard when data is available
+    // ✅ Normal dashboard
     return (
         <div className="relative w-full min-h-screen bg-[#f9f9f9] flex flex-col">
             <PermissionModal
@@ -184,9 +184,8 @@ export const Dashboard = (): JSX.Element => {
                 onCancel={handleCancelPermission}
             />
 
-            {/* Header */}
             <header className="sticky top-0 z-10 w-full bg-white">
-                <div className="flex flex-col w-full items-start sticky top-0 z-10 bg-white">
+                <div className="flex flex-col w-full items-start">
                     <div className="flex h-11 items-center justify-between px-4 py-2.5 w-full">
                         <Menu className="w-6 h-6 cursor-pointer" onClick={toggleMenu} />
                         <div className="font-bold text-blue-600 text-base text-center font-['Merriweather_Sans',Helvetica]">
@@ -197,15 +196,10 @@ export const Dashboard = (): JSX.Element => {
                 </div>
             </header>
 
-            {/* Slide-in Menu */}
-            <div
-                className={`fixed top-0 left-0 h-full w-[245px] bg-[#f4f5f7] shadow-lg transform transition-transform duration-300 ${isMenuOpen ? "translate-x-0" : "-translate-x-full"
-                    }`}
-            >
+            <div className={`fixed top-0 left-0 h-full w-[245px] bg-[#f4f5f7] shadow-lg transform transition-transform duration-300 ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
                 <NavFrame user={userData?.profile} />
             </div>
 
-            {/* Main Content */}
             <main className="flex-1">
                 <div className="p-4">
                     <h1 className="text-xl font-bold">Welcome, {userData?.profile?.name || "User"}!</h1>
@@ -217,3 +211,4 @@ export const Dashboard = (): JSX.Element => {
         </div>
     );
 };
+
