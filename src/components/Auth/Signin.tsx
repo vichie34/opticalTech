@@ -17,7 +17,8 @@ import { useState, useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import api from "../../lib/utils";
 import { Link, useNavigate } from "react-router-dom";
-import WalletConnectProvider from "@walletconnect/web3-provider";
+import { EthereumProvider } from "@walletconnect/ethereum-provider"
+// import WalletConnectProvider from "@walletconnect/web3-provider";
 import Web3 from "web3";
 // import axios from "axios";
 import { toast } from 'sonner';
@@ -59,39 +60,57 @@ function Signin() {
 
     const handleWalletConnect = async () => {
         try {
-            const provider = new WalletConnectProvider({
-                infuraId: import.meta.env.VITE_INFURA_ID,
-                bridge: "https://bridge.walletconnect.org",
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+            const provider = await EthereumProvider.init({
+                projectId: import.meta.env.VITE_PROJECT_ID,
+                chains: [1], // Replace with your chain ID
+                showQrModal: !isMobile, // only show QR code on desktop
+                rpcMap: {
+                    1: `https://mainnet.infura.io/v3/${import.meta.env.VITE_INFURA_ID}`,
+                },
+                methods: ['eth_requestAccounts', 'personal_sign', 'eth_sendTransaction'],
+                metadata: {
+                    name: "OptiCheck",
+                    description: "Login with WalletConnect",
+                    url: "https://opticheck.netlify.app",
+                    icons: ["https://opticheck.netlify.app/assets/Frame.png"],
+                },
             });
-            const infuraId = import.meta.env.VITE_INFURA_ID;
-            console.log("Infura ID:", infuraId); // Should log your ID
+
+            // For mobile users, redirect to wallet app
+            if (isMobile) {
+                // This triggers the deep link to the wallet (like MetaMask or Trust Wallet)
+                await provider.connect();
+            } else {
+                // For desktop users, this will show the QR modal automatically
+                await provider.enable();
+            }
 
 
-            await provider.enable();
+            await provider.enable(); // triggers modal and wallet selection
 
             const web3 = new Web3(provider);
             const accounts = await web3.eth.getAccounts();
 
             if (!accounts || accounts.length === 0) {
-                // setError("No accounts found. Please ensure your wallet is connected.");
-                toast.error("No accounts found. Please ensure your wallet is connected."); return;
+                toast.error("No accounts found. Please ensure your wallet is connected.");
+                return;
             }
 
             const walletAddress = accounts[0];
             console.log("Connected wallet:", walletAddress);
 
-            // Step 1: Authenticate wallet with your backend
-            const authResponse = await api.post("api/v1/auth/login", { walletAddress });
+            // Step 1: Authenticate with backend
+            const authResponse = await api.post("/api/v1/auth/login", { walletAddress });
             const { token } = authResponse.data;
             localStorage.setItem("token", token);
             console.log("Wallet login successful.");
 
-            // Step 2: Fetch block number via your backend RPC proxy
+            // Step 2: Fetch block number from backend
             const rpcResponse = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/rpc`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     jsonrpc: "2.0",
                     method: "eth_blockNumber",
@@ -99,31 +118,30 @@ function Signin() {
                     id: 1
                 })
             });
-            // console.log(import.meta.env.VITE_API_BACKEND_URL);
-            console.log("About to call fetch...");
-            console.log("Backend URL:", import.meta.env.VITE_API_BACKEND_URL);
 
             if (!rpcResponse.ok) {
-                // setError("Failed to fetch block number. Please try again.");
-                toast.error("Failed to fetch block number. Please try again."); return;
+                toast.error("Failed to fetch block number. Please try again.");
+                return;
             }
+
             const json = await rpcResponse.json();
             const latestBlock = parseInt(json.result, 16);
             setblockNumber(latestBlock.toString());
             console.log("Latest block number:", latestBlock);
 
-            // Navigate user
+            // Navigate to dashboard
             navigate("/dashboard");
+
         } catch (err) {
             if (err instanceof Error && err.message.includes("User closed modal")) {
-                // setError("Wallet connection was canceled. Please try again.");
                 toast.error("Wallet connection was canceled. Please try again.");
             } else {
-                toast.error("An error occurred while connecting to the wallet. Please try again.");
+                toast.error("An error occurred while connecting to the wallet.");
             }
             console.error("WalletConnect error:", err);
         }
     };
+
 
     useEffect(() => {
         if (blockNumber) {

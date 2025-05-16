@@ -79,6 +79,7 @@ export const Dashboard = (): JSX.Element => {
         }
     };
 
+
     useEffect(() => {
         const accessToken = localStorage.getItem('accessToken');
         const refresh_token = localStorage.getItem('refresh_token');
