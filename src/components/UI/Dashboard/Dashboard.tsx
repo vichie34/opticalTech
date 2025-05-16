@@ -3,7 +3,7 @@ import api from "../../../lib/utils";
 import { NavFrame } from "./Sections/Frame/NavFrame";
 import { Menu, Settings } from "lucide-react";
 import PermissionModal from "./Sections/Modal/PermissionModal";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 interface UserProfile {
     name: string;
@@ -27,38 +27,69 @@ export const Dashboard = (): JSX.Element => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
     const navigate = useNavigate();
-    const location = useLocation();
+    // const location = useLocation();
 
     const toggleMenu = () => setIsMenuOpen((prev) => !prev);
 
     const fetchUserData = async () => {
         setLoading(true);
-        setError('');
-        try {
-            const refresh_token = location.state?.refresh_token || localStorage.getItem('refresh_token');
-            if (!refresh_token) throw new Error("Refresh token is missing. Please log in again.");
+        setError("");
 
-            const response = await api.post('/api/v1/dashboard/me', { refresh_token });
+        try {
+            const accessToken = localStorage.getItem("accessToken");
+            const refreshToken = localStorage.getItem("refreshToken");
+
+            if (!accessToken && !refreshToken) {
+                throw new Error("No valid session found. Please log in again.");
+            }
+
+            const response = await api.get("/api/v1/dashboard/me", {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            });
 
             setUserData(response.data);
 
-            const permissionsGranted = localStorage.getItem('permissionsGranted');
-            if (!permissionsGranted) setIsPermissionModalOpen(true);
+            if (!localStorage.getItem("permissionsGranted")) {
+                setIsPermissionModalOpen(true);
+            }
         } catch (err: any) {
-            console.error('Error fetching dashboard data:', err);
+            console.error("Error fetching dashboard data:", err);
+
             if (err.response?.status === 401) {
-                setError("Session expired. Please log in again.");
-                localStorage.removeItem('refresh_token');
-                navigate('/signin');
+                // Token expired or invalid, try refresh or logout
+                if (localStorage.getItem("refreshToken")) {
+                    // Ideally implement refresh token flow here (example below)
+                    try {
+                        const refreshResponse = await api.post(
+                            "/api/v1/auth/refresh-access-token",
+                            {},
+                            {
+                                headers: {
+                                    Authorization: `Bearer ${localStorage.getItem("refreshToken")}`,
+                                },
+                            }
+                        );
+                        localStorage.setItem("accessToken", refreshResponse.data.accessToken);
+                        await fetchUserData(); // Retry with new token
+                        return;
+                    } catch {
+                        // Refresh failed, logout
+                        setError("Session expired. Please log in again.");
+                        navigate("/signin");
+                    }
+                } else {
+                    setError("Session expired. Please log in again.");
+                    navigate("/signin");
+                }
             } else {
-                setError(err.response?.data?.message || 'Failed to load dashboard data. Please try again later.');
+                setError(err.response?.data?.message || "Failed to load dashboard data.");
             }
         } finally {
             setLoading(false);
         }
     };
-
-
 
     useEffect(() => {
         const accessToken = localStorage.getItem('accessToken');

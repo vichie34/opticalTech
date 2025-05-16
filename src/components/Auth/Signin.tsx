@@ -14,9 +14,40 @@ function Signin() {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [blockNumber, setblockNumber] = useState<string>("");
+    const [wcProvider, setWcProvider] = useState<any | null>(null);
     const navigate = useNavigate();
 
     const togglePasswordVisibility = () => setShowPassword(prev => !prev);
+
+    useEffect(() => {
+        const initWalletConnect = async () => {
+            try {
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+                const provider = await EthereumProvider.init({
+                    projectId: import.meta.env.VITE_PROJECT_ID,
+                    chains: [1],
+                    showQrModal: !isMobile,
+                    rpcMap: {
+                        1: `https://mainnet.infura.io/v3/${import.meta.env.VITE_INFURA_ID}`,
+                    },
+                    methods: ['eth_requestAccounts', 'personal_sign', 'eth_sendTransaction'],
+                    metadata: {
+                        name: "OptiCheck",
+                        description: "Login with WalletConnect",
+                        url: "https://opticheck.netlify.app",
+                        icons: ["https://opticheck.netlify.app/assets/Frame.png"],
+                    },
+                });
+
+                setWcProvider(provider);
+            } catch (err) {
+                console.error("Failed to initialize WalletConnect:", err);
+            }
+        };
+
+        initWalletConnect();
+    }, []);
 
     const handleSignin = async () => {
         setLoading(true);
@@ -37,29 +68,16 @@ function Signin() {
     };
 
     const handleWalletConnect = async () => {
+        if (!wcProvider) {
+            toast.error("WalletConnect is not ready yet. Please try again in a moment.");
+            return;
+        }
+
         setLoading(true);
         try {
-            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            await wcProvider.connect();
 
-            const provider = await EthereumProvider.init({
-                projectId: import.meta.env.VITE_PROJECT_ID,
-                chains: [1],
-                showQrModal: !isMobile,
-                rpcMap: {
-                    1: `https://mainnet.infura.io/v3/${import.meta.env.VITE_INFURA_ID}`,
-                },
-                methods: ['eth_requestAccounts', 'personal_sign', 'eth_sendTransaction'],
-                metadata: {
-                    name: "OptiCheck",
-                    description: "Login with WalletConnect",
-                    url: "https://opticheck.netlify.app",
-                    icons: ["https://opticheck.netlify.app/assets/Frame.png"],
-                },
-            });
-
-            await provider.connect();
-
-            const web3 = new Web3(provider as any);
+            const web3 = new Web3(wcProvider as any);
             const accounts = await web3.eth.getAccounts();
 
             if (!accounts || accounts.length === 0) {
@@ -68,15 +86,13 @@ function Signin() {
             }
 
             const walletAddress = accounts[0];
-
             const { data } = await api.post("/api/v1/auth/wallet-login", { walletAddress });
 
             localStorage.setItem("token", data.token);
             toast.success("Wallet login successful!");
-            navigate("/WalletConnected");
 
-            // Step 2: Fetch block number via your backend RPC proxy
-            const rpcResponse = await fetch(`${import.meta.env.VITE_API_BACKEND_URL} / rpc`, {
+            // Fetch block number via backend proxy
+            const rpcResponse = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/rpc`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -88,22 +104,18 @@ function Signin() {
                     id: 1
                 })
             });
-            // console.log(import.meta.env.VITE_API_BACKEND_URL);
-            console.log("About to call fetch...");
-            console.log("Backend URL:", import.meta.env.VITE_API_BACKEND_URL);
 
             if (!rpcResponse.ok) {
-                // setError("Failed to fetch block number. Please try again.");
-                toast.error("Failed to fetch block number. Please try again."); return;
+                toast.error("Failed to fetch block number. Please try again.");
+                return;
             }
+
             const json = await rpcResponse.json();
             const latestBlock = parseInt(json.result, 16);
             setblockNumber(latestBlock.toString());
             console.log("Latest block number:", latestBlock);
 
-            // Navigate user
             navigate("/dashboard");
-
         } catch (err: any) {
             if (err?.message?.includes("User closed modal")) {
                 toast.error("Wallet connection canceled.");
@@ -118,11 +130,9 @@ function Signin() {
 
     useEffect(() => {
         if (blockNumber) {
-            // Do something with the blockNumber, now that it has a value
             console.log("Block number changed:", blockNumber);
         }
     }, [blockNumber]);
-
 
     return (
         <div className="flex flex-col min-h-screen bg-[#f9f9f9] px-6 py-8">

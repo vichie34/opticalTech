@@ -43,7 +43,7 @@ export default function SignUpWallet() {
     useEffect(() => {
         const fetchWallets = async () => {
             try {
-                const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/wallets`);
+                const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/available-wallets`);
                 const walletsData = response.data.wallets || [];
                 setWallets(walletsData);
             } catch (err) {
