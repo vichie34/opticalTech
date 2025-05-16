@@ -31,7 +31,7 @@ function Hero() {
                     </div>
 
                     <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-full">
-                        <Link to="/Onboarding">Start Free Trial</Link>
+                        <Link to="/Signup">Start Free Trial</Link>
                     </button>
                 </nav>
 
@@ -46,10 +46,10 @@ function Hero() {
                         </p>
                         <div className="mt-8 flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-4">
                             <button className="bg-blue-600 w-full hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-full shadow-md transition-transform transform hover:scale-105">
-                                <Link to="/Onboarding">Get Started</Link>
+                                <Link to="/Signup">Get Started</Link>
                             </button>
                             <button className="border border-white w-full hover:bg-white hover:text-[#020c1f] text-white font-medium py-3 px-6 rounded-full shadow-md transition-colors transform hover:scale-105">
-                                <Link to="/Onboarding">Virtual Consult</Link>
+                                <Link to="/Signup">Virtual Consult</Link>
                             </button>
                         </div>
                     </div>

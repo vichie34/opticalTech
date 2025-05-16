@@ -104,18 +104,62 @@ export const Test = (): JSX.Element => {
         setCurrentSymbol(newSymbol || currentSymbol);
     };
 
+    // useEffect(() => {
+    //     let timer: NodeJS.Timeout | null = null;
+
+    //     if (isTracking) {
+    //         timer = setInterval(() => {
+    //             setTime((prevTime) => {
+    //                 if (prevTime + 1 >= maxTestDuration) {
+    //                     // Save the result for the current test
+    //                     const currentTestType = testTypes[currentTestIndex];
+    //                     setResults((prevResults) => ({
+    //                         ...prevResults,
+    //                         [currentTestType]: Math.floor((prevTime / maxTestDuration) * 100), // Example score
+    //                     }));
+
+    //                     // Notify the user about the next test
+    //                     setIsTracking(false);
+    //                     setShowNotification(true);
+
+    //                     clearInterval(timer!);
+    //                     return maxTestDuration;
+    //                 }
+
+    //                 // Gradually reduce opacity for Snellen Test
+    //                 if (testTypes[currentTestIndex] === "Snellen Test") {
+    //                     const fadeOutTime = maxTestDuration * 0.8; // Fade out in the last 80% of the duration
+    //                     const newOpacity = Math.max(0, 1 - (prevTime + 1) / fadeOutTime);
+    //                     setOpacity(newOpacity);
+    //                 }
+
+    //                 return prevTime + 1;
+    //             });
+    //             generateRandomSymbol();
+    //         }, 1000);
+    //     } else if (!isTracking && timer) {
+    //         clearInterval(timer);
+    //     }
+
+    //     return () => {
+    //         if (timer) clearInterval(timer);
+    //     };
+    // }, [isTracking, currentTestIndex, navigate, results]);
+
     useEffect(() => {
         let timer: NodeJS.Timeout | null = null;
 
         if (isTracking) {
             timer = setInterval(() => {
                 setTime((prevTime) => {
-                    if (prevTime + 1 >= maxTestDuration) {
+                    const newTime = prevTime + 1;
+
+                    if (newTime >= maxTestDuration) {
                         // Save the result for the current test
                         const currentTestType = testTypes[currentTestIndex];
                         setResults((prevResults) => ({
                             ...prevResults,
-                            [currentTestType]: Math.floor((prevTime / maxTestDuration) * 100), // Example score
+                            [currentTestType]: Math.floor((newTime / maxTestDuration) * 100), // Example score
                         }));
 
                         // Notify the user about the next test
@@ -129,22 +173,22 @@ export const Test = (): JSX.Element => {
                     // Gradually reduce opacity for Snellen Test
                     if (testTypes[currentTestIndex] === "Snellen Test") {
                         const fadeOutTime = maxTestDuration * 0.8; // Fade out in the last 80% of the duration
-                        const newOpacity = Math.max(0, 1 - (prevTime + 1) / fadeOutTime);
+                        const newOpacity = Math.max(0, 1 - newTime / fadeOutTime);
                         setOpacity(newOpacity);
                     }
 
-                    return prevTime + 1;
+                    return newTime;
                 });
+
                 generateRandomSymbol();
             }, 1000);
-        } else if (!isTracking && timer) {
-            clearInterval(timer);
         }
 
         return () => {
             if (timer) clearInterval(timer);
         };
-    }, [isTracking, currentTestIndex, navigate, results]);
+    }, [isTracking, currentTestIndex]);
+
 
     const startNextTest = () => {
         setShowNotification(false); // Hide notification
