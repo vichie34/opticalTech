@@ -35,64 +35,6 @@ function Signup() {
         }
     };
 
-    // const handleWalletSignup = async () => {
-    //     setLoading(true);
-    //     try {
-    //         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-    //         const provider = await EthereumProvider.init({
-    //             projectId: import.meta.env.VITE_PROJECT_ID,
-    //             chains: [1],
-    //             showQrModal: !isMobile,
-    //             rpcMap: {
-    //                 1: `https://mainnet.infura.io/v3/${import.meta.env.VITE_INFURA_ID}`,
-    //             },
-    //             methods: ['eth_requestAccounts', 'personal_sign', 'eth_sendTransaction'],
-    //             metadata: {
-    //                 name: "OptiCheck",
-    //                 description: "Sign up with WalletConnect",
-    //                 url: "https://opticheck.netlify.app",
-    //                 icons: ["https://opticheck.netlify.app/assets/Frame.png"],
-    //             },
-    //         });
-
-    //         if (isMobile) {
-    //             await provider.connect(); // triggers wallet deep link
-    //         } else {
-    //             await provider.enable(); // shows QR modal
-    //         }
-
-    //         const web3 = new Web3(provider as any);
-    //         const accounts = await web3.eth.getAccounts();
-
-    //         if (!accounts || accounts.length === 0) {
-    //             toast.error("No wallet account found.");
-    //             return;
-    //         }
-
-    //         const walletAddress = accounts[0];
-    //         const walletName = "DefaultWalletName"; // optional
-
-    //         const { data } = await api.post("/api/v1/auth/wallet-login", {
-    //             walletAddress,
-    //             walletName,
-    //         });
-
-    //         localStorage.setItem("token", data.token);
-    //         toast.success("Wallet signup successful!");
-    //         navigate("/walletconnected");
-    //     } catch (err: any) {
-    //         if (err?.message?.includes("User closed modal")) {
-    //             toast.error("Wallet connection canceled.");
-    //         } else {
-    //             toast.error("Wallet signup failed. Redirecting...");
-    //             navigate("/sign_in_with_wallet");
-    //         }
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
-
     const handleWalletSignup = async () => {
         setLoading(true);
         try {

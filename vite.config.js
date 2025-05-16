@@ -1,47 +1,41 @@
 // vite.config.ts
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-// import NodeGlobalsPolyfillPlugin from '@esbuild-plugins/node-globals-polyfill';
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
 import rollupNodePolyFill from 'rollup-plugin-node-polyfills';
-import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
     plugins: [
         react(),
-        nodePolyfills(),
         tailwindcss(),
     ],
+    resolve: {
+        alias: {
+            process: 'process/browser',
+            buffer: 'buffer',
+        },
+    },
+    define: {
+        global: 'globalThis', // <- Fix for preview build
+    },
     optimizeDeps: {
         esbuildOptions: {
             define: {
-                global: 'globalThis'
+                global: 'globalThis',
             },
             plugins: [
                 NodeGlobalsPolyfillPlugin({
+                    process: true,
                     buffer: true,
-                })
-            ]
-        }
+                }),
+            ],
+        },
     },
     build: {
         rollupOptions: {
             plugins: [
                 rollupNodePolyFill(),
-            ]
-        },
-        commonjsOptions: {
-            transformMixedEsModules: true,
+            ],
         },
     },
-    resolve: {
-        alias: {
-            buffer: 'rollup-plugin-node-polyfills/polyfills/buffer-es6',
-            stream: 'rollup-plugin-node-polyfills/polyfills/stream',
-            process: 'rollup-plugin-node-polyfills/polyfills/process-es6',
-            util: 'rollup-plugin-node-polyfills/polyfills/util',
-            events: 'rollup-plugin-node-polyfills/polyfills/events',
-            path: 'rollup-plugin-node-polyfills/polyfills/path',
-        }
-    }
 });

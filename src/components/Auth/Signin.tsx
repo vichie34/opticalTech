@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import api from "../../lib/utils";
 import { Link, useNavigate } from "react-router-dom";
@@ -13,9 +13,10 @@ function Signin() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
+    const [blockNumber, setblockNumber] = useState<string>("");
     const navigate = useNavigate();
 
-    const togglePasswordVisibility = () => setShowPassword(!showPassword);
+    const togglePasswordVisibility = () => setShowPassword(prev => !prev);
 
     const handleSignin = async () => {
         setLoading(true);
@@ -35,67 +36,15 @@ function Signin() {
         }
     };
 
-    // const handleWalletConnect = async () => {
-    //     setLoading(true);
-    //     try {
-    //         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-    //         const provider = await EthereumProvider.init({
-    //             projectId: import.meta.env.VITE_PROJECT_ID,
-    //             chains: [1],
-    //             showQrModal: !isMobile,
-    //             rpcMap: {
-    //                 1: `https://mainnet.infura.io/v3/${import.meta.env.VITE_INFURA_ID}`,
-    //             },
-    //             methods: ['eth_requestAccounts', 'personal_sign', 'eth_sendTransaction'],
-    //             metadata: {
-    //                 name: "OptiCheck",
-    //                 description: "Login with WalletConnect",
-    //                 url: "https://opticheck.netlify.app",
-    //                 icons: ["https://opticheck.netlify.app/assets/Frame.png"],
-    //             },
-    //         });
-
-    //         if (isMobile) {
-    //             await provider.connect();
-    //         } else {
-    //             await provider.enable();
-    //         }
-
-    //         const web3 = new Web3(provider as any);
-    //         const accounts = await web3.eth.getAccounts();
-
-    //         if (!accounts || accounts.length === 0) {
-    //             toast.error("No wallet account found.");
-    //             return;
-    //         }
-
-    //         const walletAddress = accounts[0];
-
-    //         const { data } = await api.post("/api/v1/auth/wallet-login", { walletAddress });
-
-    //         localStorage.setItem("token", data.token);
-    //         toast.success("Wallet login successful!");
-    //         navigate("/walletconnected");
-    //     } catch (err: any) {
-    //         if (err?.message?.includes("User closed modal")) {
-    //             toast.error("Wallet connection canceled.");
-    //         } else {
-    //             toast.error("Wallet login failed. Redirecting...");
-    //             navigate("/sign_in_with_wallet");
-    //         }
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
-
     const handleWalletConnect = async () => {
         setLoading(true);
         try {
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
             const provider = await EthereumProvider.init({
                 projectId: import.meta.env.VITE_PROJECT_ID,
                 chains: [1],
-                showQrModal: true, // Always show QR modal
+                showQrModal: !isMobile,
                 rpcMap: {
                     1: `https://mainnet.infura.io/v3/${import.meta.env.VITE_INFURA_ID}`,
                 },
@@ -108,7 +57,7 @@ function Signin() {
                 },
             });
 
-            await provider.connect(); // Always use connect()
+            await provider.connect();
 
             const web3 = new Web3(provider as any);
             const accounts = await web3.eth.getAccounts();
@@ -125,6 +74,36 @@ function Signin() {
             localStorage.setItem("token", data.token);
             toast.success("Wallet login successful!");
             navigate("/WalletConnected");
+
+            // Step 2: Fetch block number via your backend RPC proxy
+            const rpcResponse = await fetch(`${import.meta.env.VITE_API_BACKEND_URL} / rpc`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    jsonrpc: "2.0",
+                    method: "eth_blockNumber",
+                    params: [],
+                    id: 1
+                })
+            });
+            // console.log(import.meta.env.VITE_API_BACKEND_URL);
+            console.log("About to call fetch...");
+            console.log("Backend URL:", import.meta.env.VITE_API_BACKEND_URL);
+
+            if (!rpcResponse.ok) {
+                // setError("Failed to fetch block number. Please try again.");
+                toast.error("Failed to fetch block number. Please try again."); return;
+            }
+            const json = await rpcResponse.json();
+            const latestBlock = parseInt(json.result, 16);
+            setblockNumber(latestBlock.toString());
+            console.log("Latest block number:", latestBlock);
+
+            // Navigate user
+            navigate("/dashboard");
+
         } catch (err: any) {
             if (err?.message?.includes("User closed modal")) {
                 toast.error("Wallet connection canceled.");
@@ -137,24 +116,31 @@ function Signin() {
         }
     };
 
+    useEffect(() => {
+        if (blockNumber) {
+            // Do something with the blockNumber, now that it has a value
+            console.log("Block number changed:", blockNumber);
+        }
+    }, [blockNumber]);
+
 
     return (
         <div className="flex flex-col min-h-screen bg-[#f9f9f9] px-6 py-8">
             <div className="flex items-center gap-2 mb-16">
-                <img src="/assets/Frame.png" alt="" />
+                <img src="/assets/Frame.png" alt="Logo" />
                 <span className="text-[#3b99fc] text-2xl font-semibold">OptiCheck</span>
             </div>
 
             <div className="flex-1">
-                <h1 className="text-3xl font-bold text-[#1d1d1d] mb-1">Log in to Opticheck</h1>
+                <h1 className="text-3xl font-bold text-[#1d1d1d] mb-1">Log in to OptiCheck</h1>
                 <p className="text-[#6b7280] text-lg mb-8">Welcome back</p>
 
                 <button
-                    className="w-full bg-[#02153e] text-white rounded-full py-4 px-6 flex items-center justify-center gap-2 mb-6"
+                    className="w-full bg-[#02153e] text-white rounded-full py-4 px-6 flex items-center justify-center gap-2 mb-6 disabled:opacity-50"
                     onClick={handleWalletConnect}
                     disabled={loading}
                 >
-                    <img src="/assets/Vector.png" alt="" />
+                    <img src="/assets/Vector.png" alt="Wallet Icon" />
                     <span className="text-lg font-medium">Login with Wallet</span>
                 </button>
 
@@ -188,6 +174,7 @@ function Signin() {
                             className="w-full px-6 py-4 border border-[#d9d9d9] rounded-full text-[#6b7280] focus:outline-none focus:ring-2 focus:ring-[#3b99fc]"
                         />
                         <button
+                            type="button"
                             className="absolute right-6 top-1/2 transform -translate-y-1/2"
                             onClick={togglePasswordVisibility}
                         >
@@ -206,7 +193,7 @@ function Signin() {
             </div>
 
             <button
-                className="w-full bg-[#3b99fc] text-white rounded-full py-4 px-6 text-lg font-medium mb-8"
+                className="w-full bg-[#3b99fc] text-white rounded-full py-4 px-6 text-lg font-medium mb-8 disabled:opacity-50"
                 onClick={handleSignin}
                 disabled={loading}
                 type="button"
