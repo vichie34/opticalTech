@@ -48,9 +48,6 @@ function Hero() {
                             <button className="bg-blue-600 w-full hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-full shadow-md transition-transform transform hover:scale-105">
                                 <Link to="/Signup">Get Started</Link>
                             </button>
-                            <button className="border border-white w-full hover:bg-white hover:text-[#020c1f] text-white font-medium py-3 px-6 rounded-full shadow-md transition-colors transform hover:scale-105">
-                                <Link to="/Signup">Virtual Consult</Link>
-                            </button>
                         </div>
                     </div>
 
