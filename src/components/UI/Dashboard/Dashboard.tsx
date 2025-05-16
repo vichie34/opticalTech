@@ -4,6 +4,8 @@ import { NavFrame } from "./Sections/Frame/NavFrame";
 import { Menu, Settings } from "lucide-react";
 import PermissionModal from "./Sections/Modal/PermissionModal";
 import { useNavigate } from "react-router-dom";
+import { Frame } from "./Sections/Frame/Frame";
+import { FrameWrapper } from "./Sections/FrameWrapper/FrameWrapper";
 
 interface UserProfile {
     name: string;
@@ -89,8 +91,8 @@ export const Dashboard = (): JSX.Element => {
 
     useEffect(() => {
         const accessToken = localStorage.getItem("accessToken");
-        const refresh_token = localStorage.getItem("refreshToken");
-        if (accessToken || refresh_token) {
+        const refreshToken = localStorage.getItem("refreshToken");
+        if (accessToken || refreshToken) {
             fetchUserData();
         }
     }, []);
@@ -115,77 +117,103 @@ export const Dashboard = (): JSX.Element => {
         );
     }
 
-    if (error && userData === null) {
+    // Fallback UI if user is logged in but userData failed to load
+    if (!loading && (!userData || error)) {
         return (
             <div className="relative w-full min-h-screen bg-[#f9f9f9] flex flex-col">
-                {/* Header */}
-                <header className="sticky top-0 z-10 w-full bg-white">
-                    <div className="flex h-11 items-center justify-between px-4 py-2.5 w-full">
-                        <Menu className="w-6 h-6 cursor-pointer" onClick={toggleMenu} />
-                        <div className="font-bold text-blue-600 text-base">OptiCheck</div>
-                        <Settings className="w-6 h-6 cursor-pointer" />
-                    </div>
-                </header>
-
-                {/* Slide-in Menu */}
-                <div className={`fixed top-0 left-0 h-full w-[245px] bg-[#f4f5f7] shadow-lg transform transition-transform duration-300 ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
-                    <NavFrame user={undefined} />
-                </div>
-
-                {/* Main Content */}
-                <main className="flex-1 p-4">
-                    <h1 className="text-xl font-bold">Welcome back!</h1>
-                    <p className="text-sm text-gray-600 mt-1">We couldn't load your full dashboard data right now.</p>
-                    <div className="text-red-500 mt-4">{error}</div>
-                    <button
-                        onClick={fetchUserData}
-                        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                        Retry
-                    </button>
-                </main>
-
+                {/* Permission Modal */}
                 <PermissionModal
                     isOpen={isPermissionModalOpen}
                     onAllow={handleAllowAccess}
                     onCancel={handleCancelPermission}
                 />
+
+                {/* Header */}
+                <header className="sticky top-0 z-10 w-full bg-white">
+                    <div className="flex flex-col w-full items-start sticky top-0 z-10 bg-white">
+                        <div className="flex h-11 items-center justify-between px-4 py-2.5 w-full">
+                            <Menu className="w-6 h-6 cursor-pointer" onClick={toggleMenu} />
+                            <div className="font-bold text-blue-600 text-base text-center font-['Merriweather_Sans',Helvetica]">
+                                OptiCheck
+                            </div>
+                            <Settings className="w-6 h-6 cursor-pointer" />
+                        </div>
+                    </div>
+                </header>
+
+                {/* Slide-in Menu */}
+                <div
+                    className={`fixed top-0 left-0 h-full w-[245px] bg-[#f4f5f7] shadow-lg transform transition-transform duration-300 ${isMenuOpen ? "translate-x-0" : "-translate-x-full"
+                        }`}
+                >
+                    <NavFrame />
+                </div>
+
+                {/* Main Content */}
+                <main className="flex-1">
+                    <div className="p-4">
+                        <h1 className="text-xl font-bold">Welcome, {userData?.profile?.name || "User"}!</h1>
+                        <p>Your last test was on {userData?.profile?.lastTestDate || "N/A"}.</p>
+
+                        {/* Show error and retry button */}
+                        {error && (
+                            <div className="mt-4">
+                                <p className="text-red-500">{error}</p>
+                                <button
+                                    onClick={fetchUserData}
+                                    className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                >
+                                    Retry
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                    <FrameWrapper />
+                    <Frame />
+                </main>
             </div>
         );
     }
 
+    // Normal dashboard when data is available
     return (
         <div className="relative w-full min-h-screen bg-[#f9f9f9] flex flex-col">
+            <PermissionModal
+                isOpen={isPermissionModalOpen}
+                onAllow={handleAllowAccess}
+                onCancel={handleCancelPermission}
+            />
+
             {/* Header */}
             <header className="sticky top-0 z-10 w-full bg-white">
-                <div className="flex h-11 items-center justify-between px-4 py-2.5 w-full">
-                    <Menu className="w-6 h-6 cursor-pointer" onClick={toggleMenu} />
-                    <div className="font-bold text-blue-600 text-base">OptiCheck</div>
-                    <Settings className="w-6 h-6 cursor-pointer" />
+                <div className="flex flex-col w-full items-start sticky top-0 z-10 bg-white">
+                    <div className="flex h-11 items-center justify-between px-4 py-2.5 w-full">
+                        <Menu className="w-6 h-6 cursor-pointer" onClick={toggleMenu} />
+                        <div className="font-bold text-blue-600 text-base text-center font-['Merriweather_Sans',Helvetica]">
+                            OptiCheck
+                        </div>
+                        <Settings className="w-6 h-6 cursor-pointer" />
+                    </div>
                 </div>
             </header>
 
             {/* Slide-in Menu */}
-            <div className={`fixed top-0 left-0 h-full w-[245px] bg-[#f4f5f7] shadow-lg transform transition-transform duration-300 ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
+            <div
+                className={`fixed top-0 left-0 h-full w-[245px] bg-[#f4f5f7] shadow-lg transform transition-transform duration-300 ${isMenuOpen ? "translate-x-0" : "-translate-x-full"
+                    }`}
+            >
                 <NavFrame user={userData?.profile} />
             </div>
 
             {/* Main Content */}
             <main className="flex-1">
                 <div className="p-4">
-                    <h1 className="text-xl font-bold">
-                        Welcome, {userData?.profile?.name?.split(" ")[0] || "User"}!
-                    </h1>
+                    <h1 className="text-xl font-bold">Welcome, {userData?.profile?.name || "User"}!</h1>
                     <p>Your last test was on {userData?.profile?.lastTestDate || "N/A"}.</p>
                 </div>
-                <pre>{JSON.stringify(userData?.stats, null, 2)}</pre>
+                <FrameWrapper />
+                <Frame />
             </main>
-
-            <PermissionModal
-                isOpen={isPermissionModalOpen}
-                onAllow={handleAllowAccess}
-                onCancel={handleCancelPermission}
-            />
         </div>
     );
 };

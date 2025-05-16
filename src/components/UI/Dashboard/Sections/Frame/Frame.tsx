@@ -2,6 +2,7 @@ import { Badge } from "../../../../../components/UI/ux/badge";
 import { Button } from "../../../../../components/UI/ux/button";
 import { Card, CardContent } from "../../../../../components/UI/ux/card";
 import { JSX } from "react";
+import { Link } from "react-router-dom";
 
 // Define test card data for mapping
 const testCards = [
@@ -99,6 +100,7 @@ export const Frame = (): JSX.Element => {
                                 <div className="flex flex-col">
                                     <span className="font-medium text-[#1d1d1d] text-base">
                                         Start a Test
+                                        <Link to="/test" className="text-white">Start a Test</Link>
                                     </span>
                                     <span className="font-normal text-[#637587] text-xs">
                                         Complete test in 5 minutes
