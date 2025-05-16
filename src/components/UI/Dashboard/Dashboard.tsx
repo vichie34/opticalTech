@@ -23,11 +23,10 @@ interface UserData {
 export const Dashboard = (): JSX.Element => {
     const [userData, setUserData] = useState<UserData | null>(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+    const [error, setError] = useState("");
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
     const navigate = useNavigate();
-    // const location = useLocation();
 
     const toggleMenu = () => setIsMenuOpen((prev) => !prev);
 
@@ -58,9 +57,7 @@ export const Dashboard = (): JSX.Element => {
             console.error("Error fetching dashboard data:", err);
 
             if (err.response?.status === 401) {
-                // Token expired or invalid, try refresh or logout
                 if (localStorage.getItem("refreshToken")) {
-                    // Ideally implement refresh token flow here (example below)
                     try {
                         const refreshResponse = await api.post(
                             "/api/v1/auth/refresh-access-token",
@@ -75,7 +72,6 @@ export const Dashboard = (): JSX.Element => {
                         await fetchUserData(); // Retry with new token
                         return;
                     } catch {
-                        // Refresh failed, logout
                         setError("Session expired. Please log in again.");
                         navigate("/signin");
                     }
@@ -92,8 +88,8 @@ export const Dashboard = (): JSX.Element => {
     };
 
     useEffect(() => {
-        const accessToken = localStorage.getItem('accessToken');
-        const refresh_token = localStorage.getItem('refresh_token');
+        const accessToken = localStorage.getItem("accessToken");
+        const refresh_token = localStorage.getItem("refreshToken");
         if (accessToken || refresh_token) {
             fetchUserData();
         }
@@ -103,9 +99,9 @@ export const Dashboard = (): JSX.Element => {
         try {
             await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
             setIsPermissionModalOpen(false);
-            localStorage.setItem('permissionsGranted', 'true');
+            localStorage.setItem("permissionsGranted", "true");
         } catch {
-            alert('Failed to access mic and camera. Please allow permissions.');
+            alert("Failed to access mic and camera. Please allow permissions.");
         }
     };
 
@@ -119,7 +115,7 @@ export const Dashboard = (): JSX.Element => {
         );
     }
 
-    if (error) {
+    if (error && userData === null) {
         return (
             <div className="relative w-full min-h-screen bg-[#f9f9f9] flex flex-col">
                 {/* Header */}
@@ -132,20 +128,21 @@ export const Dashboard = (): JSX.Element => {
                 </header>
 
                 {/* Slide-in Menu */}
-                <div className={`fixed top-0 left-0 h-full w-[245px] bg-[#f4f5f7] shadow-lg transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                    <NavFrame user={userData?.profile} />
+                <div className={`fixed top-0 left-0 h-full w-[245px] bg-[#f4f5f7] shadow-lg transform transition-transform duration-300 ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
+                    <NavFrame user={undefined} />
                 </div>
 
                 {/* Main Content */}
-                <main className="flex-1">
-                    <div className="p-4">
-                        <h1 className="text-xl font-bold">
-                            Welcome, {userData?.profile?.name?.split(" ")[0] || 'User'}!
-                        </h1>
-                        <p>Your last test was on {userData?.profile?.lastTestDate || 'N/A'}.</p>
-                        <div className="text-red-500 mt-4">{error}</div>
-                    </div>
-                    <pre>{JSON.stringify({}, null, 2)}</pre>
+                <main className="flex-1 p-4">
+                    <h1 className="text-xl font-bold">Welcome back!</h1>
+                    <p className="text-sm text-gray-600 mt-1">We couldn't load your full dashboard data right now.</p>
+                    <div className="text-red-500 mt-4">{error}</div>
+                    <button
+                        onClick={fetchUserData}
+                        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    >
+                        Retry
+                    </button>
                 </main>
 
                 <PermissionModal
@@ -169,7 +166,7 @@ export const Dashboard = (): JSX.Element => {
             </header>
 
             {/* Slide-in Menu */}
-            <div className={`fixed top-0 left-0 h-full w-[245px] bg-[#f4f5f7] shadow-lg transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <div className={`fixed top-0 left-0 h-full w-[245px] bg-[#f4f5f7] shadow-lg transform transition-transform duration-300 ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
                 <NavFrame user={userData?.profile} />
             </div>
 
@@ -177,9 +174,9 @@ export const Dashboard = (): JSX.Element => {
             <main className="flex-1">
                 <div className="p-4">
                     <h1 className="text-xl font-bold">
-                        Welcome, {userData?.profile?.name?.split(" ")[0] || 'User'}!
+                        Welcome, {userData?.profile?.name?.split(" ")[0] || "User"}!
                     </h1>
-                    <p>Your last test was on {userData?.profile?.lastTestDate || 'N/A'}.</p>
+                    <p>Your last test was on {userData?.profile?.lastTestDate || "N/A"}.</p>
                 </div>
                 <pre>{JSON.stringify(userData?.stats, null, 2)}</pre>
             </main>
