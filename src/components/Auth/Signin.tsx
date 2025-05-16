@@ -27,9 +27,7 @@ function Signin() {
             localStorage.setItem("refresh_token", refresh_token);
 
             toast.success("Signin successful!");
-            navigate("/dashboard");
-            window.location.reload(); // Ensures fresh state in case localStorage was not read properly
-
+            navigate("/dashboard", { state: { refresh_token } });
         } catch (err: any) {
             toast.error(err.response?.data?.message || "Signin failed. Please try again.");
         } finally {
@@ -37,15 +35,67 @@ function Signin() {
         }
     };
 
+    // const handleWalletConnect = async () => {
+    //     setLoading(true);
+    //     try {
+    //         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    //         const provider = await EthereumProvider.init({
+    //             projectId: import.meta.env.VITE_PROJECT_ID,
+    //             chains: [1],
+    //             showQrModal: !isMobile,
+    //             rpcMap: {
+    //                 1: `https://mainnet.infura.io/v3/${import.meta.env.VITE_INFURA_ID}`,
+    //             },
+    //             methods: ['eth_requestAccounts', 'personal_sign', 'eth_sendTransaction'],
+    //             metadata: {
+    //                 name: "OptiCheck",
+    //                 description: "Login with WalletConnect",
+    //                 url: "https://opticheck.netlify.app",
+    //                 icons: ["https://opticheck.netlify.app/assets/Frame.png"],
+    //             },
+    //         });
+
+    //         if (isMobile) {
+    //             await provider.connect();
+    //         } else {
+    //             await provider.enable();
+    //         }
+
+    //         const web3 = new Web3(provider as any);
+    //         const accounts = await web3.eth.getAccounts();
+
+    //         if (!accounts || accounts.length === 0) {
+    //             toast.error("No wallet account found.");
+    //             return;
+    //         }
+
+    //         const walletAddress = accounts[0];
+
+    //         const { data } = await api.post("/api/v1/auth/wallet-login", { walletAddress });
+
+    //         localStorage.setItem("token", data.token);
+    //         toast.success("Wallet login successful!");
+    //         navigate("/walletconnected");
+    //     } catch (err: any) {
+    //         if (err?.message?.includes("User closed modal")) {
+    //             toast.error("Wallet connection canceled.");
+    //         } else {
+    //             toast.error("Wallet login failed. Redirecting...");
+    //             navigate("/sign_in_with_wallet");
+    //         }
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
     const handleWalletConnect = async () => {
         setLoading(true);
         try {
-            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
             const provider = await EthereumProvider.init({
                 projectId: import.meta.env.VITE_PROJECT_ID,
                 chains: [1],
-                showQrModal: !isMobile,
+                showQrModal: true, // Always show QR modal
                 rpcMap: {
                     1: `https://mainnet.infura.io/v3/${import.meta.env.VITE_INFURA_ID}`,
                 },
@@ -58,11 +108,7 @@ function Signin() {
                 },
             });
 
-            if (isMobile) {
-                await provider.connect();
-            } else {
-                await provider.enable();
-            }
+            await provider.connect(); // Always use connect()
 
             const web3 = new Web3(provider as any);
             const accounts = await web3.eth.getAccounts();
@@ -90,6 +136,7 @@ function Signin() {
             setLoading(false);
         }
     };
+
 
     return (
         <div className="flex flex-col min-h-screen bg-[#f9f9f9] px-6 py-8">
