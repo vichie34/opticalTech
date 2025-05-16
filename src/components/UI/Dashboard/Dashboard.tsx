@@ -33,7 +33,7 @@ export const Dashboard = (): JSX.Element => {
 
     const fetchAccessToken = async (refresh_token: string): Promise<string | null> => {
         try {
-            const response = await api.post('/api/v1/auth/refresh-token', { refresh_token });
+            const response = await api.post('/api/v1/auth/refresh/access/token', { refresh_token });
             const { accessToken } = response.data;
             localStorage.setItem('accessToken', accessToken);
             return accessToken;
@@ -42,6 +42,43 @@ export const Dashboard = (): JSX.Element => {
             return null;
         }
     };
+
+
+    // const fetchUserData = async () => {
+    //     setLoading(true);
+    //     setError('');
+    //     try {
+    //         const refresh_token = location.state?.refresh_token || localStorage.getItem('refresh_token');
+    //         if (!refresh_token) throw new Error("Refresh token is missing. Please log in again.");
+
+    //         let accessToken = localStorage.getItem('accessToken');
+    //         if (!accessToken) {
+    //             accessToken = await fetchAccessToken(refresh_token);
+    //             if (!accessToken) throw new Error("Failed to refresh access token. Please log in again.");
+    //         }
+
+    //         const response = await api.post('/api/v1/dashboard/me', {}, {
+    //             headers: { Authorization: `Bearer ${accessToken}` },
+    //         });
+    //         setUserData(response.data);
+
+    //         const permissionsGranted = localStorage.getItem('permissionsGranted');
+    //         if (!permissionsGranted) setIsPermissionModalOpen(true);
+
+    //     } catch (err: any) {
+    //         console.error('Error fetching dashboard data:', err);
+    //         if (err.response?.status === 401) {
+    //             setError("Session expired. Please log in again.");
+    //             localStorage.removeItem('accessToken');
+    //             localStorage.removeItem('refresh_token');
+    //             navigate('/signin');
+    //         } else {
+    //             setError(err.response?.data?.message || 'Failed to load dashboard data. Please try again later.');
+    //         }
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
 
     const fetchUserData = async () => {
         setLoading(true);
@@ -78,6 +115,7 @@ export const Dashboard = (): JSX.Element => {
             setLoading(false);
         }
     };
+
 
 
     useEffect(() => {

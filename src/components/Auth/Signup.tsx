@@ -4,44 +4,32 @@ import { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import api from "../../lib/utils";
 import { useNavigate, Link } from "react-router-dom";
-// import EthereumProvider from "@walletconnect/ethereum-provider"; //version2
-import WalletConnectProvider from "@walletconnect/web3-provider";  //version1
+import { EthereumProvider } from "@walletconnect/ethereum-provider";
 import Web3 from "web3";
-import axios from "axios";
 import { toast } from 'sonner';
 
 function Signup() {
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    // const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    const togglePasswordVisibility = () => {
-        setShowPassword(!showPassword);
-    };
+    const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
     const handleSignup = async () => {
         setLoading(true);
         try {
-            const response = await api.post("/api/v1/auth/register", { email, password });
-            const token = response.data.token;
-            const refresh_token = response.data.refresh_token;
-            console.log("Token:", token);
-            console.log("Refresh Token:", refresh_token);
-            console.log("Response Data:", response.data);
+            const res = await api.post("/api/v1/auth/register", { email, password });
+            const { token, refresh_token } = res.data;
 
             localStorage.setItem("token", token);
             localStorage.setItem("refresh_token", refresh_token);
 
-            toast.success("Signup successful! Sign in to continue.");
+            toast.success("Signup successful! Please sign in.");
             navigate("/signin", { state: { refresh_token } });
         } catch (err: any) {
-            toast.error(
-                err.response?.data?.message ||
-                "Signup failed. Please try again."
-            );
+            toast.error(err.response?.data?.message || "Signup failed. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -50,74 +38,67 @@ function Signup() {
     const handleWalletSignup = async () => {
         setLoading(true);
         try {
-            const infuraId = import.meta.env.VITE_INFURA_ID;
-            // console.log("Infura ID:", infuraId); // Confirm it's not undefined
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-            if (!infuraId) {
-                throw new Error("Missing Infura ID in environment variables.");
-            }
-
-            const provider = new WalletConnectProvider({
-                infuraId,
+            const provider = await EthereumProvider.init({
+                projectId: import.meta.env.VITE_PROJECT_ID,
+                chains: [1],
+                showQrModal: !isMobile,
+                rpcMap: {
+                    1: `https://mainnet.infura.io/v3/${import.meta.env.VITE_INFURA_ID}`,
+                },
+                methods: ['eth_requestAccounts', 'personal_sign', 'eth_sendTransaction'],
+                metadata: {
+                    name: "OptiCheck",
+                    description: "Sign up with WalletConnect",
+                    url: "https://opticheck.netlify.app",
+                    icons: ["https://opticheck.netlify.app/assets/Frame.png"],
+                },
             });
 
+            if (isMobile) {
+                await provider.connect(); // triggers wallet deep link
+            } else {
+                await provider.enable(); // shows QR modal
+            }
 
-
-            await provider.enable();
-            const web3 = new Web3(provider);
+            const web3 = new Web3(provider as any);
             const accounts = await web3.eth.getAccounts();
-            const walletAddress = accounts[0];
 
-            await api.post("/api/v1/auth/wallet-login", { walletAddress });
-
-            if (!accounts[0]) {
-                toast.error("No wallet address found. Please connect your wallet.");
+            if (!accounts || accounts.length === 0) {
+                toast.error("No wallet account found.");
                 return;
             }
 
-            const walletName = "DefaultWalletName";
-            const walletResponse = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/wallet-login`, {
-                walletAddress: accounts[0],
+            const walletAddress = accounts[0];
+            const walletName = "DefaultWalletName"; // optional
+
+            const { data } = await api.post("/api/v1/auth/wallet-login", {
+                walletAddress,
                 walletName,
             });
 
-            const { token } = walletResponse.data;
-            localStorage.setItem("token", token);
+            localStorage.setItem("token", data.token);
+            toast.success("Wallet signup successful!");
             navigate("/walletconnected");
-        } catch (err) {
-            if (axios.isAxiosError(err)) {
-                toast.error(
-                    axios.isAxiosError(err)
-                        ? err.response?.data?.message || "Failed to connect wallet. Redirecting to fallback..."
-                        : "An unexpected error occurred. Please try again."
-                );
-
-
-                navigate("/sign_in_with_wallet");
+        } catch (err: any) {
+            if (err?.message?.includes("User closed modal")) {
+                toast.error("Wallet connection canceled.");
             } else {
-                toast.error(
-                    axios.isAxiosError(err)
-                        ? err.response?.data?.message || "Failed to connect wallet. Redirecting to fallback..."
-                        : "An unexpected error occurred. Please try again."
-                );
-
+                toast.error("Wallet signup failed. Redirecting...");
+                navigate("/sign_in_with_wallet");
             }
         } finally {
+            setLoading(false);
         }
     };
 
     useEffect(() => {
         const refreshToken = async () => {
             try {
-                const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/refresh-access-token`, {}, {
-                    withCredentials: true,
-                });
-                const { token } = response.data;
-                localStorage.setItem("token", token);
-                console.log("Token refreshed successfully.");
-            } catch (err) {
-                console.error("Token refresh failed:", err);
-                // setError("Session expired. Please log in again.");
+                const { data } = await api.post("/api/v1/auth/refresh-access-token");
+                localStorage.setItem("token", data.token);
+            } catch {
                 toast.error("Session expired. Please log in again.");
                 navigate("/signin");
             }
@@ -141,8 +122,9 @@ function Signup() {
                 <button
                     className="w-full bg-[#02153e] text-white rounded-full py-4 px-6 flex items-center justify-center gap-2 mb-6"
                     onClick={handleWalletSignup}
+                    disabled={loading}
                 >
-                    <img src="/assets/Vector.png" alt="" />
+                    <img src="/assets/Vector.png" alt="wallet icon" />
                     <span className="text-lg font-medium">Sign up with Wallet</span>
                 </button>
 
@@ -213,4 +195,3 @@ function Signup() {
 }
 
 export default Signup;
-

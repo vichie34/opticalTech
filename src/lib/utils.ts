@@ -32,6 +32,45 @@ axios
         console.error(error);
     });
 
+// Request interceptor to add access token to headers
+api.interceptors.request.use(
+    (config) => {
+        const accessToken = localStorage.getItem('accessToken');
+        if (accessToken) {
+            config.headers['Authorization'] = `Bearer ${accessToken}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
+// Response interceptor to handle 401 errors
+api.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        const originalRequest = error.config;
+        if (error.response.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
+            const refresh_token = localStorage.getItem('refresh_token');
+            if (refresh_token) {
+                try {
+                    const response = await axios.post('api/v1/auth/refresh-token', { refresh_token });
+                    const newAccessToken = response.data.accessToken;
+                    localStorage.setItem('accessToken', newAccessToken);
+                    originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+                    return api(originalRequest);
+                } catch (err) {
+                    // Handle token refresh failure (e.g., redirect to login)
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refresh_token');
+                    window.location.href = '/signin';
+                }
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
 
 // Add interceptors for error handling or token injection if needed
 api.interceptors.request.use((config) => {
