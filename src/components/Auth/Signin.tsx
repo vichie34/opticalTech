@@ -27,7 +27,9 @@ function Signin() {
             localStorage.setItem("refresh_token", refresh_token);
 
             toast.success("Signin successful!");
-            navigate("/dashboard", { state: { refresh_token } });
+            navigate("/dashboard");
+            window.location.reload(); // Ensures fresh state in case localStorage was not read properly
+
         } catch (err: any) {
             toast.error(err.response?.data?.message || "Signin failed. Please try again.");
         } finally {
@@ -76,7 +78,7 @@ function Signin() {
 
             localStorage.setItem("token", data.token);
             toast.success("Wallet login successful!");
-            navigate("/walletconnected");
+            navigate("/WalletConnected");
         } catch (err: any) {
             if (err?.message?.includes("User closed modal")) {
                 toast.error("Wallet connection canceled.");
