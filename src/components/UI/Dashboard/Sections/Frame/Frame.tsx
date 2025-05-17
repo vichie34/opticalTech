@@ -219,7 +219,9 @@ export const Frame = (): JSX.Element => {
 
             {/* Start a Test Button */}
             <Button className="w-[343px] p-3 bg-blue-600 rounded-3xl font-bold text-[#fefefe] text-base font-['Manrope',Helvetica]">
-                Start a Test
+                <Link to="/test" className="text-[#fefefe] text-base font-['Manrope',Helvetica]">
+                    Start a Test
+                </Link>
             </Button>
         </div>
     );
