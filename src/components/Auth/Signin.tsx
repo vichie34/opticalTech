@@ -22,12 +22,12 @@ function Signin() {
     useEffect(() => {
         const initWalletConnect = async () => {
             try {
-                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                // const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
                 const provider = await EthereumProvider.init({
                     projectId: import.meta.env.VITE_PROJECT_ID,
                     chains: [1],
-                    showQrModal: !isMobile,
+                    showQrModal: true,
                     rpcMap: {
                         1: `https://mainnet.infura.io/v3/${import.meta.env.VITE_INFURA_ID}`,
                     },
