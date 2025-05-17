@@ -1,7 +1,23 @@
+// import { useEffect } from "react";
 import { Check } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function WalletConnected() {
+    const navigate = useNavigate();
+
+    const handleContinue = () => {
+        const refreshToken = localStorage.getItem("refresh_token");
+
+        if (!refreshToken) {
+            alert("Refresh token missing. Please log in again.");
+            navigate("/login");
+            return;
+        }
+
+        // Navigate to dashboard and optionally pass token via navigation state
+        navigate("/dashboard", { state: { refresh_token: refreshToken } });
+    };
+
     return (
         <div className="flex flex-col min-h-screen bg-white text-black">
             {/* Top Header */}
@@ -38,12 +54,12 @@ export default function WalletConnected() {
 
             {/* Continue Button */}
             <div className="px-4 mb-12">
-                <Link
-                    to="/dashboard"
+                <button
+                    onClick={handleContinue}
                     className="block w-full bg-[#2563eb] text-white text-center py-4 rounded-full text-lg font-medium"
                 >
                     Continue
-                </Link>
+                </button>
             </div>
         </div>
     );

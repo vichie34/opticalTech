@@ -116,7 +116,7 @@ export const Dashboard = (): JSX.Element => {
 
     const handleCancelPermission = () => setIsPermissionModalOpen(false);
 
-    // ✅ Loader (brief)
+    //  Loader (brief)
     if (loading && !showFallback) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-white">
@@ -125,7 +125,7 @@ export const Dashboard = (): JSX.Element => {
         );
     }
 
-    // ✅ Fallback UI after timeout or error
+    //  Fallback UI after timeout or error
     if (showFallback || (!loading && (!userData || error))) {
         return (
             <div className="relative w-full min-h-screen bg-[#f9f9f9] flex flex-col">
@@ -175,7 +175,7 @@ export const Dashboard = (): JSX.Element => {
         );
     }
 
-    // ✅ Normal dashboard
+    //  Normal dashboard
     return (
         <div className="relative w-full min-h-screen bg-[#f9f9f9] flex flex-col">
             <PermissionModal

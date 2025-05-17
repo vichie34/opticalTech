@@ -12,24 +12,29 @@ export const HowItWorks = (): JSX.Element => {
         setIsMenuOpen((prev) => !prev);
     };
 
+    function goBack(): void {
+        window.history.back();
+    }
+
+
     // Data for instruction cards
     const instructionCards = [
         {
             title: "Position your Device",
             description: "Hold your device at arm's lenghth",
-            icon: "/assets/Frame 2147224506 (1).png",
+            icon: "/assets/Frame 2147224506 (3).svg",
             bgColor: "bg-blue-100",
         },
         {
             title: "Read the Letters",
             description: "Follow on-screen instructions",
-            icon: "/assets/Frame 2147224506 (2).png",
+            icon: "/assets/Frame 2147224506 (1).svg",
             bgColor: "bg-violet-50",
         },
         {
             title: "Voice Commands",
             description: "Speak the letters you see clearly",
-            icon: "/assets/Frame 2147224506 (3).png",
+            icon: "/assets/Frame 2147224506 (4).svg",
             bgColor: "bg-emerald-50",
         },
     ];
@@ -61,7 +66,7 @@ export const HowItWorks = (): JSX.Element => {
 
             {/* Back button and title */}
             <div className="flex w-[344px] items-center gap-[87px] mt-6 mx-4">
-                <img className="w-6 h-6" alt="Arrow back" src="/assets/arrow_back.png" />
+                <img onClick={goBack} className="w-6 h-6" alt="Arrow back" src="/assets/arrow_back.png" />
                 <div className="flex flex-col items-center justify-center gap-1">
                     <div className="flex items-center justify-center gap-[9.24px]">
                         <div className="font-normal text-[#1d1d1d] text-lg text-center font-['Outfit',Helvetica]">

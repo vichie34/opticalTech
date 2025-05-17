@@ -41,7 +41,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({ formData, onPreviou
                     type="button"
                     className="w-full h-14 rounded-full bg-blue-600 text-white text-lg font-medium hover:bg-blue-700 transition-colors"
                 >
-                    <Link to="/signup">Confirm</Link>
+                    <Link to="/dashboard">Continue to Dashboard</Link>
                 </button>
             </div>
         </div>

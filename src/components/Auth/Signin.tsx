@@ -59,7 +59,8 @@ function Signin() {
             localStorage.setItem("refresh_token", refresh_token);
 
             toast.success("Signin successful!");
-            navigate("/dashboard", { state: { refresh_token } });
+            // dashboard page
+            navigate("/Onboarding");
         } catch (err: any) {
             toast.error(err.response?.data?.message || "Signin failed. Please try again.");
         } finally {

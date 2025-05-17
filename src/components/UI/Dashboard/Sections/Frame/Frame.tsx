@@ -90,26 +90,24 @@ export const Frame = (): JSX.Element => {
                     <Card className="w-full border-[0.25px] border-[#b6b6b6] rounded-xl">
                         <CardContent className="p-4 flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <div className="w-[35px] h-[35px] bg-blue-100 rounded-full flex items-center justify-center">
-                                    <img
-                                        className="w-[18px] h-[18px]"
-                                        alt="Visibility"
-                                        src="/assets/Frame 2147224506.png"
-                                    />
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="font-medium text-[#1d1d1d] text-base">
-                                        <Link to="/test" className="text-black">Start a Test</Link>
-                                    </span>
-                                    <span className="font-normal text-[#637587] text-xs">
-                                        Complete test in 5 minutes
-                                    </span>
-                                </div>
+                                <Link to="/howitworks" className="flex items-center gap-4">
+                                    <div className="w-[35px] h-[35px] bg-blue-100 rounded-full flex items-center justify-center">
+                                        <img
+                                            className="w-[18px] h-[18px]"
+                                            alt="Visibility"
+                                            src="/assets/Frame 2147224506 (1).svg"
+                                        />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="font-medium text-[#1d1d1d] text-base">
+                                            Start a Test
+                                        </span>
+                                        <span className="font-normal text-[#637587] text-xs">
+                                            Complete test in 2 minutes
+                                        </span>
+                                    </div></Link>
                             </div>
                             <div className="w-[35px] h-[35px] bg-blue-600 rounded-full flex items-center justify-center">
-                                {/* <div className="w-5 h-5 flex items-center justify-center">
-                                    <div className="w-[17.14px] h-[17.14px] bg-[url('/assets/Depth 4, Frame 0 (2).png')] bg-[100%_100%]" />
-                                </div> */}
                                 <img src="/assets/Frame 2147224506.svg" alt="" />
                             </div>
                         </CardContent>
@@ -138,12 +136,14 @@ export const Frame = (): JSX.Element => {
                                     {test.title}
                                 </h3>
                                 <div className="flex items-end justify-between w-full">
-                                    <Button
-                                        variant="link"
-                                        className="h-auto p-0 text-blue-600 text-base font-normal"
-                                    >
-                                        Start the test
-                                    </Button>
+                                    <Link to="/test">
+                                        <Button
+                                            variant="link"
+                                            className="h-auto p-0 text-blue-600 text-base font-normal"
+                                        >
+                                            Start the test
+                                        </Button>
+                                    </Link>
                                 </div>
                             </CardContent>
                         </Card>
