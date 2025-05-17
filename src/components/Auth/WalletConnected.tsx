@@ -58,7 +58,7 @@ export default function WalletConnected() {
                     onClick={handleContinue}
                     className="block w-full bg-[#2563eb] text-white text-center py-4 rounded-full text-lg font-medium"
                 >
-                    Continue
+                    Continue to dashboard
                 </button>
             </div>
         </div>
