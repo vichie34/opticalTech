@@ -24,12 +24,12 @@ const testCards = [
     {
         id: 4,
         title: "Lea Symbols Test",
-        backgroundImage: "url('')",
+        backgroundImage: "url('/assets/Depth 4, Frame 0 (6).png')",
     },
     {
         id: 5,
         title: "Contrast Sensitivity Test",
-        backgroundImage: "url(..//depth-4--frame-0-3.png)",
+        backgroundImage: "url('/assets/Depth 4, Frame 0 (7).png')",
     },
 ];
 
@@ -99,8 +99,7 @@ export const Frame = (): JSX.Element => {
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="font-medium text-[#1d1d1d] text-base">
-                                        Start a Test
-                                        <Link to="/test" className="text-white">Start a Test</Link>
+                                        <Link to="/test" className="text-black">Start a Test</Link>
                                     </span>
                                     <span className="font-normal text-[#637587] text-xs">
                                         Complete test in 5 minutes
@@ -108,9 +107,10 @@ export const Frame = (): JSX.Element => {
                                 </div>
                             </div>
                             <div className="w-[35px] h-[35px] bg-blue-600 rounded-full flex items-center justify-center">
-                                <div className="w-5 h-5 flex items-center justify-center">
+                                {/* <div className="w-5 h-5 flex items-center justify-center">
                                     <div className="w-[17.14px] h-[17.14px] bg-[url('/assets/Depth 4, Frame 0 (2).png')] bg-[100%_100%]" />
-                                </div>
+                                </div> */}
+                                <img src="/assets/Frame 2147224506.svg" alt="" />
                             </div>
                         </CardContent>
                     </Card>
@@ -210,7 +210,7 @@ export const Frame = (): JSX.Element => {
                                 </span>
                             </div>
                             <div className="flex items-center justify-center w-7">
-                                <div className="w-6 h-6 bg-[url('/assets/Depth 4, Frame 0 (3).png')] bg-[100%_100%]" />
+                                <img src="/assets/Depth 5, Frame 0.svg" alt="" />
                             </div>
                         </div>
                     ))}
