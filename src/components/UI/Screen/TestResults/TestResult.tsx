@@ -10,6 +10,10 @@ import { Button } from "../../ux/button";
 import { Badge } from "../../ux/badge";
 import { JSX } from "react";
 
+function goBack() {
+    window.history.back;
+}
+
 export const TestResult = (): JSX.Element => {
     const location = useLocation();
     const { testScore, completedAt } = location.state || { testScore: 0, completedAt: new Date().toISOString() };
@@ -86,7 +90,7 @@ export const TestResult = (): JSX.Element => {
         <main className="relative w-full max-w-[375px] h-[812px] bg-[#f9f9f9] mx-auto">
             {/* Header */}
             <header className="flex w-[344px] items-center gap-3 absolute top-20 left-4">
-                <Button variant="ghost" size="icon" className="p-0 h-6 w-6">
+                <Button variant="ghost" size="icon" className="p-0 h-6 w-6" onClick={goBack}>
                     <ArrowLeftIcon className="h-6 w-6" />
                 </Button>
 
