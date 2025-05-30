@@ -216,6 +216,15 @@ function Signin() {
                 <span className="text-[#1d1d1d]">Don't have an account? </span>
                 <Link to="/signup" className="text-[#3b99fc] font-medium">Sign up</Link>
             </div>
+
+            <div className="flex justify-center pb-6">
+                <div className="flex gap-3 items-center">
+                    <div className="">
+                        <img src="/assets/token-branded_solana.svg" alt="" />
+                    </div>
+                    <div className="text-[#5B5B5B] text-lg">Powered by Solana</div>
+                </div>
+            </div>
         </div>
     );
 }

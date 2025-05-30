@@ -185,6 +185,15 @@ function Signup() {
                     </Link>
                 </div>
             </div>
+
+            <div className="flex justify-center pb-6">
+                <div className="flex gap-3">
+                    <div className="">
+                        <img src="/assets/token-branded_solana.svg" alt="" />
+                    </div>
+                    <div className="text-[#858484] text-lg">Powered by Solana</div>
+                </div>
+            </div>
         </div>
     );
 }
