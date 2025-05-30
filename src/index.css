@@ -5,6 +5,13 @@ body {
     font-family: 'Aeonik', sans-serif;
 }
 
+@font-face {
+    font-family: 'Outfit';
+    src: url('/fonts/outfit-regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+}
+
 @media (min-width: 1025px) {
     .test-container {
         display: none;
