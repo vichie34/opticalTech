@@ -15,19 +15,25 @@ function Signup() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
+    const [step, setStep] = useState(1); // Track the current step
+    const [first_name, setName] = useState("");
+    const [age, setAge] = useState("");
+
+
     const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
     const handleSignup = async () => {
         setLoading(true);
         try {
-            const res = await api.post("/api/v1/auth/register", { email, password });
-            const { token, refresh_token } = res.data;
+            const res = await api.post("/api/v1/auth/register", { email, password, first_name, age });
+            const data = res.data.data
+            //const { token, refresh_token } = res.data;
 
-            localStorage.setItem("token", token);
-            localStorage.setItem("refresh_token", refresh_token);
+            localStorage.setItem("access_token", data.access_token);
+            localStorage.setItem("refresh_token", data.refresh_token);
 
             toast.success("Signup successful! Please sign in.");
-            navigate("/signin", { state: { refresh_token } });
+            navigate("/signin");
         } catch (err: any) {
             toast.error(err.response?.data?.message || "Signup failed. Please try again.");
         } finally {
@@ -127,71 +133,127 @@ function Signup() {
                     <span className="text-[#6b7280] text-sm font-medium">OR SIGN UP WITH YOUR EMAIL</span>
                 </div>
 
-                <div className="mb-6">
-                    <label htmlFor="email" className="block text-[#1d1d1d] text-xl mb-2">
-                        Email
-                    </label>
-                    <input
-                        required
-                        type="email"
-                        id="email"
-                        placeholder="Type your email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="w-full px-6 py-4 border border-[#d9d9d9] rounded-full text-[#6b7280] focus:outline-none focus:ring-2 focus:ring-[#3b99fc]"
-                    />
-                </div>
+                {step === 1 ? (
+                    <>
+                        <div className="mb-6">
+                            <label htmlFor="email" className="block text-[#1d1d1d] text-xl mb-2">
+                                Email
+                            </label>
+                            <input
+                                required
+                                type="email"
+                                id="email"
+                                placeholder="Type your email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full px-6 py-4 border border-[#d9d9d9] rounded-full text-[#6b7280] focus:outline-none focus:ring-2 focus:ring-[#3b99fc]"
+                            />
+                        </div>
 
-                <div className="mb-2">
-                    <label htmlFor="password" className="block text-[#1d1d1d] text-xl mb-2">
-                        Password
-                    </label>
-                    <div className="relative">
-                        <input
-                            required
-                            type={showPassword ? "text" : "password"}
-                            id="password"
-                            placeholder="Choose password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="w-full px-6 py-4 border border-[#d9d9d9] rounded-full text-[#6b7280] focus:outline-none focus:ring-2 focus:ring-[#3b99fc]"
-                        />
+                        <div className="mb-6">
+                            <label htmlFor="password" className="block text-[#1d1d1d] text-xl mb-2">
+                                Password
+                            </label>
+                            <div className="relative">
+                                <input
+                                    required
+                                    type={showPassword ? "text" : "password"}
+                                    id="password"
+                                    placeholder="Choose password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full px-6 py-4 border border-[#d9d9d9] rounded-full text-[#6b7280] focus:outline-none focus:ring-2 focus:ring-[#3b99fc]"
+                                />
+                                <button
+                                    type="button"
+                                    className="absolute right-6 top-1/2 transform -translate-y-1/2"
+                                    onClick={togglePasswordVisibility}
+                                >
+                                    {showPassword ? (
+                                        <EyeOff className="h-5 w-5 text-[#6b7280]" />
+                                    ) : (
+                                        <Eye className="h-5 w-5 text-[#6b7280]" />
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+
                         <button
-                            className="absolute right-6 top-1/2 transform -translate-y-1/2"
-                            onClick={togglePasswordVisibility}
+                            className="w-full bg-[#3b99fc] text-white rounded-full py-4 px-6 text-lg font-medium mb-8"
+                            onClick={() => setStep(2)} // move to step 2
+                            type="button"
                         >
-                            {showPassword ? (
-                                <EyeOff className="h-5 w-5 text-[#6b7280]" />
-                            ) : (
-                                <Eye className="h-5 w-5 text-[#6b7280]" />
-                            )}
+                            Next
                         </button>
-                    </div>
-                </div>
+                    </>
+                ) : (
+                    <>
+                        <div className="mb-6">
+                            <label htmlFor="first_name" className="block text-[#1d1d1d] text-xl mb-2">
+                                First Name
+                            </label>
+                            <input
+                                required
+                                type="text"
+                                id="first_name"
+                                placeholder="Enter your first name"
+                                value={first_name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="w-full px-6 py-4 border border-[#d9d9d9] rounded-full text-[#6b7280] focus:outline-none focus:ring-2 focus:ring-[#3b99fc]"
+                            />
+                        </div>
 
-                <button
-                    className="w-full bg-[#3b99fc] text-white rounded-full py-4 px-6 text-lg font-medium mb-8"
-                    onClick={handleSignup}
-                    disabled={loading}
-                    type="button"
-                >
-                    {loading ? "Signing up..." : "Sign Up"}
-                </button>
+                        <div className="mb-6">
+                            <label htmlFor="age" className="block text-[#1d1d1d] text-xl mb-2">
+                                Age
+                            </label>
+                            <input
+                                required
+                                type="number"
+                                id="age"
+                                placeholder="Enter your age"
+                                value={age}
+                                onChange={(e) => setAge(e.target.value)}
+                                className="w-full px-6 py-4 border border-[#d9d9d9] rounded-full text-[#6b7280] focus:outline-none focus:ring-2 focus:ring-[#3b99fc]"
+                            />
+                        </div>
 
-                <div className="text-center mb-8">
+                        <div className="flex justify-between gap-4">
+                            <button
+                                className="w-1/2 border border-[#3b99fc] text-[#3b99fc] rounded-full py-4 text-lg font-medium"
+                                onClick={() => setStep(1)}
+                                type="button"
+                            >
+                                Back
+                            </button>
+
+                            <button
+                                className="w-1/2 bg-[#3b99fc] text-white rounded-full py-4 text-lg font-medium"
+                                onClick={handleSignup}
+                                disabled={loading}
+                                type="button"
+                            >
+                                {loading ? "Signing up..." : "Sign Up"}
+                            </button>
+                        </div>
+                    </>
+                )}
+
+
+                <div className="text-center m-4">
                     <span className="text-[#1d1d1d]">Already have an account? </span>
                     <Link to="/signin" className="text-[#3b99fc] font-medium">
                         Sign in
                     </Link>
                 </div>
-            </div>
 
-            <div className="flex justify-center pb-6">
-                <div className="flex gap-3">
-                    <div className="">
-                        <img src="/assets/token-branded_solana.svg" alt="" />
+                <div className="flex justify-center pb-6">
+                    <div className="flex gap-3 items-center">
+                        <div className="">
+                            <img src="/assets/token-branded_solana.svg" alt="" />
+                        </div>
+                        <div className="text-[#5B5B5B] text-lg">Powered by Solana</div>
                     </div>
-                    <div className="text-[#858484] text-lg">Powered by Solana</div>
                 </div>
             </div>
         </div>
