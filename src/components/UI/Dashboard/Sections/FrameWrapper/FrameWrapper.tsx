@@ -7,30 +7,21 @@ import {
 import { Card, CardContent } from "../../../../../components/UI/ux/card";
 import { Separator } from "../../../../../components/UI/ux/separator";
 
-export const FrameWrapper = (): JSX.Element => {
-    // User data
-    const userData = {
-        name: "Oge",
-        lastTest: "May 5, 2025",
-        avatarSrc: "/ellipse-35.png",
+
+// Define prop types
+interface FrameWrapperProps {
+    userData: {
+        name: string;
+        lastTest: string;
+        avatarSrc?: string;
     };
+    statsData: {
+        label: string;
+        value: string;
+    }[];
+}
 
-    // Stats data
-    const statsData = [
-        {
-            label: "Vision Score",
-            value: "20/25",
-        },
-        {
-            label: "Test Taken",
-            value: "10",
-        },
-        {
-            label: "Next Text",
-            value: "5 days",
-        },
-    ];
-
+export const FrameWrapper = ({ userData, statsData }: FrameWrapperProps): JSX.Element => {
     return (
         <div className="flex flex-col w-full items-start gap-[25px] p-4 bg-white">
             {/* User profile section */}
