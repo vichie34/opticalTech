@@ -228,7 +228,7 @@ export const Dashboard = (): JSX.Element => {
                 </div>
 
                 <FrameWrapper
-                    userData={userData?.user ? { name: userData.user.first_name || 'Unknown', lastTest: userData.test_taken || 'Never', eyeData: userData.eye_test_data } : { name: 'N/A', lastTest: 'N/A' }}
+                    userData={userData?.user ? { name: userData.user.first_name || 'Unknown', lastTest: userData.test_taken || 'Never'} : { name: 'N/A', lastTest: 'N/A' }}
                     statsData={statsData}
                 />
                 <Frame />
