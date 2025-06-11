@@ -104,48 +104,6 @@ export const Test = (): JSX.Element => {
         setCurrentSymbol(newSymbol || currentSymbol);
     };
 
-    // useEffect(() => {
-    //     let timer: NodeJS.Timeout | null = null;
-
-    //     if (isTracking) {
-    //         timer = setInterval(() => {
-    //             setTime((prevTime) => {
-    //                 if (prevTime + 1 >= maxTestDuration) {
-    //                     // Save the result for the current test
-    //                     const currentTestType = testTypes[currentTestIndex];
-    //                     setResults((prevResults) => ({
-    //                         ...prevResults,
-    //                         [currentTestType]: Math.floor((prevTime / maxTestDuration) * 100), // Example score
-    //                     }));
-
-    //                     // Notify the user about the next test
-    //                     setIsTracking(false);
-    //                     setShowNotification(true);
-
-    //                     clearInterval(timer!);
-    //                     return maxTestDuration;
-    //                 }
-
-    //                 // Gradually reduce opacity for Snellen Test
-    //                 if (testTypes[currentTestIndex] === "Snellen Test") {
-    //                     const fadeOutTime = maxTestDuration * 0.8; // Fade out in the last 80% of the duration
-    //                     const newOpacity = Math.max(0, 1 - (prevTime + 1) / fadeOutTime);
-    //                     setOpacity(newOpacity);
-    //                 }
-
-    //                 return prevTime + 1;
-    //             });
-    //             generateRandomSymbol();
-    //         }, 1000);
-    //     } else if (!isTracking && timer) {
-    //         clearInterval(timer);
-    //     }
-
-    //     return () => {
-    //         if (timer) clearInterval(timer);
-    //     };
-    // }, [isTracking, currentTestIndex, navigate, results]);
-
     useEffect(() => {
         let timer: NodeJS.Timeout | null = null;
 
@@ -243,7 +201,7 @@ export const Test = (): JSX.Element => {
     }
 
     return (
-        <div className="relative w-full max-w-[375px] h-[812px] bg-[#f9f9f9] lg:hidden">
+        <div className="relative w-full max-w-[375px] h-[512px] bg-[#f9f9f9] lg:hidden">
             {/* Permission Modal */}
             <PermissionModal
                 isOpen={isPermissionModalOpen}
@@ -275,7 +233,7 @@ export const Test = (): JSX.Element => {
                 </div>
             )}
 
-            <main className="w-full h-[620px] mt-[14px] bg-white">
+            <main className="w-full h-full mt-[14px] bg-white">
                 {/* Top tracking bar */}
                 <div className="flex w-full items-center justify-between px-4 py-0 mt-[30px]">
                     <div className="flex items-center gap-1">
