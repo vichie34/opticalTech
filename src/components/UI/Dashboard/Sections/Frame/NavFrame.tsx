@@ -4,13 +4,13 @@ import {
     SettingsIcon,
     UserCircleIcon,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
     Avatar,
     AvatarFallback,
     AvatarImage,
 } from "../../../ux/avatar";
 import { JSX } from "react";
-import { Button } from "../../../ux/button";
 import { Card, CardContent } from "../../../ux/card";
 
 type User = {
@@ -37,10 +37,10 @@ export const NavFrame = ({ user = fallbackUser }: NavFrameProps): JSX.Element =>
         .toUpperCase();
 
     const menuItems = [
-        { icon: <UserCircleIcon className="h-6 w-6" />, label: "Profile" },
-        { icon: <HistoryIcon className="h-6 w-6" />, label: "History" },
-        { icon: <SettingsIcon className="h-6 w-6" />, label: "Settings" },
-        { icon: <LogOutIcon className="h-6 w-6" />, label: "Log out" },
+        { icon: <UserCircleIcon className="h-6 w-6" />, label: "Profile", link: "/Profile" },
+        { icon: <HistoryIcon className="h-6 w-6" />, label: "History", link: "/History" },
+        { icon: <SettingsIcon className="h-6 w-6" />, label: "Settings", link: "/Setting" },
+        { icon: <LogOutIcon className="h-6 w-6" />, label: "Log out", link: "/Logout" },
     ];
 
     return (
@@ -53,16 +53,16 @@ export const NavFrame = ({ user = fallbackUser }: NavFrameProps): JSX.Element =>
             {/* Menu items */}
             <div className="flex flex-col w-[218px] items-start pt-0 pb-6 px-0 absolute top-52 left-4 border-b-[0.5px] border-[#b8b8b8]">
                 {menuItems.map((item, index) => (
-                    <Button
+                    <ul
                         key={index}
-                        variant="ghost"
-                        className="flex items-center justify-start gap-2 pl-0 pr-3 py-3 w-full h-auto"
                     >
-                        {item.icon}
-                        <span className="font-normal text-[#353535] text-base">
-                            {item.label}
-                        </span>
-                    </Button>
+                        <Link to={item.link} className="flex items-center justify-start gap-2 pl-0 pr-3 py-3 w-full h-auto">
+                            {item.icon}
+                            <span className="font-normal text-[#353535] text-base">
+                                {item.label}
+                            </span>
+                        </Link>
+                    </ul>
                 ))}
             </div>
 

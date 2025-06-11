@@ -93,7 +93,6 @@ export const Frame = (): JSX.Element => {
                                 <Link to="/howitworks" className="flex items-center gap-4">
                                     <div className="w-[35px] h-[35px] bg-blue-100 rounded-full flex items-center justify-center">
                                         <img
-                                            className="w-[18px] h-[18px]"
                                             alt="Visibility"
                                             src="/assets/Frame 2147224506 (1).svg"
                                         />
