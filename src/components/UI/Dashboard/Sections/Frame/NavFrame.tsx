@@ -44,7 +44,7 @@ export const NavFrame = ({ user = fallbackUser }: NavFrameProps): JSX.Element =>
     ];
 
     return (
-        <div className="relative w-[245px] h-[812px] bg-[#f4f5f7] rounded-lg overflow-hidden">
+        <div className="fixed w-[245px] h-[812px] bg-[#f4f5f7] rounded-lg overflow-hidden" style={{ zIndex: 1000 }}>
             {/* Home indicator */}
             <div className="flex flex-col w-[375px] items-start px-[120px] py-1.5 absolute bottom-0 left-0">
                 <div className="relative self-stretch w-full h-[5px] bg-[#353535] rounded-[10px]" />

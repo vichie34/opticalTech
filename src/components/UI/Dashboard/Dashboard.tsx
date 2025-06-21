@@ -204,7 +204,7 @@ export const Dashboard = (): JSX.Element => {
                 onAllow={handleAllowAccess}
                 onCancel={handleCancelPermission}
             />
-
+            {/* style={{ zIndex: -2 }} */}
             <header className="sticky top-0 z-10 w-full bg-white">
                 <div className="flex flex-col w-full items-start">
                     <div className="flex h-11 items-center justify-between px-4 py-2.5 w-full">
@@ -228,7 +228,7 @@ export const Dashboard = (): JSX.Element => {
                 </div>
 
                 <FrameWrapper
-                    userData={userData?.user ? { name: userData.user.first_name || 'Unknown', lastTest: userData.test_taken || 'Never'} : { name: 'N/A', lastTest: 'N/A' }}
+                    userData={userData?.user ? { name: userData.user.first_name || 'Unknown', lastTest: userData.test_taken || 'Never' } : { name: 'N/A', lastTest: 'N/A' }}
                     statsData={statsData}
                 />
                 <Frame />

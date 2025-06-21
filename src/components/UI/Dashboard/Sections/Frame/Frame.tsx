@@ -135,7 +135,7 @@ export const Frame = (): JSX.Element => {
                                     {test.title}
                                 </h3>
                                 <div className="flex items-end justify-between w-full">
-                                    <Link to="/test">
+                                    <Link to="/Test1">
                                         <Button
                                             variant="link"
                                             className="h-auto p-0 text-blue-600 text-base font-normal"

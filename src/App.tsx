@@ -17,6 +17,7 @@ import Notifications from './components/Navigation/notification';
 import LanguageSelection from './components/Navigation/lang-selection';
 import ChangePassword from './components/Navigation/changepassword';
 import History from './components/Navigation/history';
+import { SnellenTest } from './components/UI/Screen/Test/SnellenTest';
 
 const App = () => {
   return (
@@ -41,6 +42,9 @@ const App = () => {
           <Route path="/Changepassword" element={<ChangePassword />} />
           <Route path="/UpdateProfile" element={<UpdateProfile />} />
           <Route path="/History" element={<History />} />
+          <Route path="/Test1" element={<SnellenTest onComplete={function (result: { score: number; distance: number; }): void {
+            throw new Error('Function not implemented.');
+          }} />} />
 
         </Routes>
       </Router>

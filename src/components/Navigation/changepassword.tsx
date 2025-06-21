@@ -1,24 +1,23 @@
 "use client"
 
-import { useState } from "react"
-import { ArrowLeft, Menu, Bell, Eye, EyeOff } from "lucide-react"
-import { Button } from "../UI/ux/button"
-import { Label } from "../UI/ux/label"
-import { NavFrame } from "../UI/Dashboard/Sections/Frame/NavFrame"
-
+import { useState } from "react";
+import { ArrowLeft, Menu, Bell, Eye, EyeOff } from "lucide-react";
+import { Button } from "../UI/ux/button";
+import { Label } from "../UI/ux/label";
+import { NavFrame } from "../UI/Dashboard/Sections/Frame/NavFrame";
 
 export default function Component() {
-    const [showPassword, setShowPassword] = useState(false)
-    const [password, setPassword] = useState("")
+    const [showPassword, setShowPassword] = useState(false);
+    const [password, setPassword] = useState("");
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const toggleMenu = () => setIsMenuOpen((prev) => !prev);
 
     const handleNotificationClick = () => {
         console.log("clicked");
-    }
-    return (
-        <div className="min-h-screen bg-[#f9f9f9] max-w-sm mx-auto">
+    };
 
+    return (
+        <div className="min-h-screen bg-[#f9f9f9] max-w-sm mx-auto flex flex-col">
             {/* Header */}
             <header className="sticky top-0 z-10 w-full bg-white">
                 <div className="flex flex-col w-full items-start">
@@ -48,9 +47,9 @@ export default function Component() {
             </div>
 
             {/* Content */}
-            <div className="px-6 mt-8">
+            <div className="flex-1 flex flex-col justify-center px-6">
                 {/* Page Title */}
-                <div className="flex items-center gap-4 mb-12">
+                <div className="flex items-center gap-4 mb-12 mt-8">
                     <Button variant="ghost" size="icon" className="p-0">
                         <ArrowLeft className="w-6 h-6 text-black" />
                     </Button>
@@ -58,7 +57,7 @@ export default function Component() {
                 </div>
 
                 {/* Form */}
-                <div className="space-y-8">
+                <form className="space-y-8 w-full">
                     {/* Email Field */}
                     <div className="space-y-2">
                         <Label htmlFor="email" className="text-lg text-black font-normal">
@@ -70,7 +69,7 @@ export default function Component() {
                                 type="email"
                                 value="ogechukwu@gmail.com"
                                 readOnly
-                                className="h-14 px-4 text-base bg-[#ebebf5] border-2 border-[#2563eb] rounded-2xl text-black placeholder:text-[#6b7280] focus:border-[#2563eb] focus:ring-0"
+                                className="h-14 w-full px-4 text-base bg-[#ebebf5] border-2 border-[#2563eb] rounded-2xl text-black placeholder:text-[#6b7280] focus:border-[#2563eb] focus:ring-0"
                             />
                         </div>
                     </div>
@@ -86,15 +85,16 @@ export default function Component() {
                                 type={showPassword ? "text" : "password"}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                placeholder="input new password"
-                                className="h-14 px-4 pr-12 text-base bg-[#ebebf5] border border-[#d9d9d9] rounded-2xl text-black placeholder:text-[#b8b8b8] focus:border-[#2563eb] focus:ring-0"
+                                placeholder="Input new password"
+                                className="h-14 w-full px-4 pr-12 text-base bg-[#ebebf5] border border-[#d9d9d9] rounded-2xl text-black placeholder:text-[#b8b8b8] focus:border-[#2563eb] focus:ring-0"
                             />
                             <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="absolute right-8 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-transparent"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-transparent"
                                 onClick={() => setShowPassword(!showPassword)}
+                                tabIndex={-1}
                             >
                                 {showPassword ? (
                                     <EyeOff className="w-5 h-5 text-[#6b7280]" />
@@ -104,15 +104,15 @@ export default function Component() {
                             </Button>
                         </div>
                     </div>
-                </div>
 
-                {/* Update Button */}
-                <div className="mt-16">
-                    <Button className="w-full h-14 bg-[#2563eb] hover:bg-[#1980e5] text-white text-lg font-medium rounded-2xl">
-                        Update
-                    </Button>
-                </div>
+                    {/* Update Button */}
+                    <div className="pt-4">
+                        <Button className="w-full h-14 bg-[#2563eb] hover:bg-[#1980e5] text-white text-lg font-medium rounded-2xl">
+                            Update
+                        </Button>
+                    </div>
+                </form>
             </div>
         </div>
-    )
+    );
 }
