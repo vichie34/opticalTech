@@ -6,6 +6,10 @@ import PermissionModal from "./Sections/Modal/PermissionModal";
 import { useNavigate } from "react-router-dom";
 import { Frame } from "./Sections/Frame/Frame";
 import { FrameWrapper } from "./Sections/FrameWrapper/FrameWrapper";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(relativeTime);
 
 interface UserProfile {
     name: string;
@@ -163,8 +167,15 @@ export const Dashboard = (): JSX.Element => {
                 <main className="flex-1">
                     <div className="p-4">
                         <h1 className="text-xl font-bold">Welcome, {userData?.profile?.name || "User"}!</h1>
-                        <p>Your last test was on {userData?.profile?.lastTestDate || "N/A"}.</p>
-
+                        <p>
+                        Your last test was on{" "}
+                        {userData?.eye_test_data?.tested_at
+                            ? new Date(userData.eye_test_data.tested_at).toLocaleString("en-US", {
+                                dateStyle: "medium",
+                                timeStyle: "short",
+                            })
+                            : "N/A"}
+                        </p>
                         {error && (
                             <div className="mt-4">
                                 <p className="text-red-500">{error}</p>
@@ -178,9 +189,9 @@ export const Dashboard = (): JSX.Element => {
                         )}
                     </div>
                     <FrameWrapper
-                        userData={userData ? { name: userData.profile.name || 'Unknown', lastTest: userData.profile.lastTestDate || 'Never' } : { name: 'N/A', lastTest: 'N/A' }}
+                        userData={userData ? { name: userData.profile.name || 'Unknown', lastTest: userData.eye_test_data.tested_at || 'Never' } : { name: 'N/A', lastTest: 'N/A' }}
                         statsData={[
-                            { label: "Vision Score", value: userData?.vision_score || "N/A" },
+                            { label: "Vision Score", value: userData?.eye_test_data.visual_acuity || "N/A" },
                             { label: "Test Taken", value: userData?.test_taken?.toString() || "0" },
                             { label: "Next Test", value: userData?.next_test || "N/A" },
                         ]}
@@ -191,10 +202,18 @@ export const Dashboard = (): JSX.Element => {
         );
     }
 
+    
+
+    const testedAt = userData?.eye_test_data?.tested_at;
+
+    const nextTestCountdown = testedAt
+    ? `${dayjs().to(dayjs(testedAt).add(5, "day"))}`
+    : "N/A";
+
     const statsData = [
-        { label: "Vision Score", value: userData?.vision_score || "N/A" },
+        { label: "Vision Score", value: userData?.eye_test_data.visual_acuity || "N/A" },
         { label: "Test Taken", value: userData?.test_taken?.toString() || "0" },
-        { label: "Next Test", value: userData?.next_test || "N/A" },
+        { label: "Next Test", value: nextTestCountdown },
     ];
 
     return (
@@ -224,11 +243,27 @@ export const Dashboard = (): JSX.Element => {
             <main className="flex-1">
                 <div className="p-4">
                     <h1 className="text-xl font-bold">Welcome, {userData?.user?.first_name || "User"}!</h1>
-                    <p>Your last test was on {userData?.test_taken || "N/A"}.</p>
+                    <p>
+                    Your last test was on{" "}
+                    {userData?.eye_test_data?.tested_at
+                        ? new Date(userData.eye_test_data.tested_at).toLocaleString("en-US", {
+                            dateStyle: "medium",
+                            timeStyle: "short",
+                        })
+                        : "N/A"}
+                    </p>
                 </div>
 
                 <FrameWrapper
-                    userData={userData?.user ? { name: userData.user.first_name || 'Unknown', lastTest: userData.test_taken || 'Never' } : { name: 'N/A', lastTest: 'N/A' }}
+                    userData={userData?.user ? { name: userData.user.first_name || 'Unknown', lastTest: userData.eye_test_data.tested_at 
+                        ? new Date(userData.eye_test_data.tested_at).toLocaleString("en-US", {
+                                        dateStyle: "medium",
+                                        timeStyle: "short",
+                                    })
+                                    : "Never",
+                                }
+                            : { name: "N/A", lastTest: "N/A" }
+                        }
                     statsData={statsData}
                 />
                 <Frame />
