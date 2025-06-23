@@ -21,11 +21,19 @@ interface UserStats {
     [key: string]: any;
 }
 
+interface EyeTestData {
+    tested_at: string;
+    visual_acuity: string;
+    next_test: string;
+}
+
 interface UserData {
     profile: UserProfile;
     stats: UserStats;
     user?: {
         first_name?: string;
+
+        eye_test_data?: EyeTestData;
     };
     test_taken?: string;
     last_test?: string;
@@ -33,6 +41,7 @@ interface UserData {
     vision_score?: string;
     avatar?: string;
     first_name?: string;
+    eye_test_data?: EyeTestData;
 }
 
 export const Dashboard = (): JSX.Element => {
@@ -189,9 +198,9 @@ export const Dashboard = (): JSX.Element => {
                         )}
                     </div>
                     <FrameWrapper
-                        userData={userData ? { name: userData.profile.name || 'Unknown', lastTest: userData.eye_test_data.tested_at || 'Never' } : { name: 'N/A', lastTest: 'N/A' }}
+                        userData={userData ? { name: userData.profile.name || 'Unknown', lastTest: userData.eye_test_data?.tested_at || 'Never' } : { name: 'N/A', lastTest: 'N/A' }}
                         statsData={[
-                            { label: "Vision Score", value: userData?.eye_test_data.visual_acuity || "N/A" },
+                            { label: "Vision Score", value: userData?.eye_test_data?.visual_acuity || "N/A" },
                             { label: "Test Taken", value: userData?.test_taken?.toString() || "0" },
                             { label: "Next Test", value: userData?.next_test || "N/A" },
                         ]}
@@ -211,7 +220,7 @@ export const Dashboard = (): JSX.Element => {
     : "N/A";
 
     const statsData = [
-        { label: "Vision Score", value: userData?.eye_test_data.visual_acuity || "N/A" },
+        { label: "Vision Score", value: userData?.eye_test_data?.visual_acuity || "N/A" },
         { label: "Test Taken", value: userData?.test_taken?.toString() || "0" },
         { label: "Next Test", value: nextTestCountdown },
     ];
@@ -255,7 +264,7 @@ export const Dashboard = (): JSX.Element => {
                 </div>
 
                 <FrameWrapper
-                    userData={userData?.user ? { name: userData.user.first_name || 'Unknown', lastTest: userData.eye_test_data.tested_at 
+                    userData={userData?.user ? { name: userData.user.first_name || 'Unknown', lastTest: userData.eye_test_data?.tested_at 
                         ? new Date(userData.eye_test_data.tested_at).toLocaleString("en-US", {
                                         dateStyle: "medium",
                                         timeStyle: "short",
