@@ -5,7 +5,7 @@ import PermissionModal from "../../Dashboard/Sections/Modal/PermissionModal";
 import { toast } from "react-hot-toast";
 
 interface SnellenTestProps {
-    onComplete: (result: { score: number; distance: number }) => void;
+    onComplete: (result: { score: number; distance: number; mistakes: string[] }) => void;
 }
 
 export const SnellenTest = ({ onComplete }: SnellenTestProps): JSX.Element => {
@@ -197,8 +197,30 @@ export const SnellenTest = ({ onComplete }: SnellenTestProps): JSX.Element => {
                             Test Complete
                         </h2>
                         <p className="text-sm text-gray-600 mb-6">
-                            Please proceed to the next test.
+                            Would you like to see your result or move to the next test?
                         </p>
+                        <div className="flex flex-col gap-2">
+                            <button
+                                onClick={() => {
+                                    setShowNotification(false);
+                                    // Show result modal or navigate to result page
+                                    onComplete({ score: Math.floor((time / maxTestDuration) * 100), distance, mistakes });
+                                }}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                            >
+                                See Result
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setShowNotification(false);
+                                    // Move to next test (parent should handle this in onComplete)
+                                    onComplete({ score: Math.floor((time / maxTestDuration) * 100), distance, mistakes });
+                                }}
+                                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
+                            >
+                                Next Test
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
@@ -226,9 +248,9 @@ export const SnellenTest = ({ onComplete }: SnellenTestProps): JSX.Element => {
                         </span>
                     </div>
                 </div>
-                <div className="mx-4 mt-[16px]">
+                <div className="mx-4 mt-2">
                     <Progress
-                        value={Math.min((time / maxTestDuration) * 100, 100)}
+                        value={(time / maxTestDuration) * 100}
                         className="h-1 bg-[#e6e6e6] rounded-[10px]"
                     />
                 </div>
