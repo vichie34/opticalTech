@@ -158,20 +158,56 @@ export const SnellenTest = ({ onComplete }: SnellenTestProps): JSX.Element => {
         if (!isPermissionModalOpen && time === 0 && !isTracking) setIsTracking(true);
     }, [isPermissionModalOpen]);
 
-    const sendTestResult = async (result: { score: number; distance: number; mistakes: string[] }) => {
-        try {
-            const response = await fetch("/api/test-results", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(result),
-            });
-            if (!response.ok) throw new Error("Failed to submit test results");
-            toast.success("Test result submitted successfully");
-        } catch (err) {
-            toast.error("Failed to send test results");
-            console.error("Submission error:", err);
-        }
-    };
+
+    const sendTestResult = async () => {
+    try {
+        const user_result = {
+            normal_acuity: 40,
+            user_acuity: Math.floor((time / maxTestDuration) * 100),
+            distance: distance,
+        };
+
+        // Refresh token
+        const authResponse = await fetch("https://opticheck.vercel.app/api/v1/auth/tokenn", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                refresh_token: localStorage.getItem("refresh_token"),
+            }),
+        });
+        const auth = await authResponse.json();
+        //console.log("Auth response:", auth);
+        const usertoken = auth.access_token;
+        const refresh_token = auth.refresh_token;
+
+        // Store tokens
+        localStorage.setItem("access_token", usertoken);
+        localStorage.setItem("refresh_token", refresh_token);
+
+        console.log("Sending test result:", user_result);
+
+        const response = await fetch("https://opticheck.vercel.app/api/v1/test/snellen-test", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${usertoken}`,
+            },
+            body: JSON.stringify(user_result),
+            credentials: "include",
+        });
+
+        if (!response.ok) throw new Error("Failed to submit test results");
+
+        toast.success("Test result submitted successfully");
+    } catch (err) {
+        toast.error("Failed to send test results");
+        console.error("Submission error:", err);
+    }
+};
+
 
     if (!isMobileOrTablet) {
         return (
