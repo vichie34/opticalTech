@@ -3,12 +3,13 @@ import { Card, CardContent } from "../../ux/card";
 import { Progress } from "../../ux/progress";
 import PermissionModal from "../../Dashboard/Sections/Modal/PermissionModal";
 import { toast } from "react-hot-toast";
+import { Link, useNavigate } from "react-router-dom";
 
 interface SnellenTestProps {
     onComplete: (result: { score: number; distance: number; mistakes: string[] }) => void;
 }
 
-export const SnellenTest = ({ onComplete }: SnellenTestProps): JSX.Element => {
+export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
     const [time, setTime] = useState(0);
     const [isTracking, setIsTracking] = useState(false);
     const [currentSymbol, setCurrentSymbol] = useState("A");
@@ -16,10 +17,11 @@ export const SnellenTest = ({ onComplete }: SnellenTestProps): JSX.Element => {
     const [opacity, setOpacity] = useState(1);
     const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
     const [showNotification, setShowNotification] = useState(false);
+    const [showResult, setShowResult] = useState(false);
     const [isListening, setIsListening] = useState(false);
     const [isMobileOrTablet, setIsMobileOrTablet] = useState(true);
     const [animationSpeed, setAnimationSpeed] = useState(1);
-    const [mistakes, setMistakes] = useState<string[]>([]);
+    const [mistakes] = useState<string[]>([]);
 
     const maxTestDuration = 24;
     const distance = 40;
@@ -28,6 +30,16 @@ export const SnellenTest = ({ onComplete }: SnellenTestProps): JSX.Element => {
     const analyserRef = useRef<AnalyserNode | null>(null);
     const dataArrayRef = useRef<Uint8Array | null>(null);
     const mediaStreamRef = useRef<MediaStream | null>(null);
+    const navigate = useNavigate();
+
+    // Define the test order and current index for navigation
+    const testOrder = [
+        "/test/colorblindness",
+        "/test/tumbling-e",
+        "/test/lea-symbols",
+        "/test/contrast-sensitivity"
+    ];
+    const nextTestIndex = 0; // colorblindness is first in the order
 
     useEffect(() => {
         const permissionsGranted = localStorage.getItem("permissionsGranted");
@@ -76,7 +88,7 @@ export const SnellenTest = ({ onComplete }: SnellenTestProps): JSX.Element => {
                         clearInterval(timer!);
                         const result = { score: Math.floor((newTime / maxTestDuration) * 100), distance, mistakes };
                         sendTestResult(result);
-                        onComplete(result);
+                        // Do not call onComplete here, let user choose in modal
                         return maxTestDuration;
                     }
                     const fadeOutTime = maxTestDuration * 0.8;
@@ -110,17 +122,42 @@ export const SnellenTest = ({ onComplete }: SnellenTestProps): JSX.Element => {
                 dataArrayRef.current = new Uint8Array(analyserRef.current.frequencyBinCount);
 
                 const updateVolume = () => {
+                    // if (analyserRef.current && dataArrayRef.current) {
+                    //     analyserRef.current.getByteTimeDomainData(dataArrayRef.current!);
+                    //     let sum = 0;
+                    //     for (let i = 0; i < dataArrayRef.current.length; i++) {
+                    //         const val = dataArrayRef.current[i] - 128;
+                    //         sum += val * val;
+                    //     }
+                    //     const rms = Math.sqrt(sum / dataArrayRef.current.length);
+                    //     const speed = Math.max(0.5, 2 - rms / 20);
+                    //     setAnimationSpeed(speed);
+                    // }
+                    // if (analyserRef.current && dataArrayRef.current) {
+                    //     const dataArray = dataArrayRef.current;
+                    //     analyserRef.current.getByteTimeDomainData(dataArray);
+                    //     let sum = 0;
+                    //     for (let i = 0; i < dataArray.length; i++) {
+                    //         const val = dataArray[i] - 128;
+                    //         sum += val * val;
+                    //     }
+                    //     const rms = Math.sqrt(sum / dataArray.length);
+                    //     const speed = Math.max(0.5, 2 - rms / 20);
+                    //     setAnimationSpeed(speed);
+                    // }
                     if (analyserRef.current && dataArrayRef.current) {
-                        analyserRef.current.getByteTimeDomainData(dataArrayRef.current);
+                        // @ts-ignore
+                        analyserRef.current.getByteTimeDomainData(dataArrayRef.current!);
                         let sum = 0;
-                        for (let i = 0; i < dataArrayRef.current.length; i++) {
-                            const val = dataArrayRef.current[i] - 128;
+                        for (let i = 0; i < dataArrayRef.current!.length; i++) {
+                            const val = dataArrayRef.current![i] - 128;
                             sum += val * val;
                         }
-                        const rms = Math.sqrt(sum / dataArrayRef.current.length);
+                        const rms = Math.sqrt(sum / dataArrayRef.current!.length);
                         const speed = Math.max(0.5, 2 - rms / 20);
                         setAnimationSpeed(speed);
                     }
+
                     rafId = requestAnimationFrame(updateVolume);
                 };
                 updateVolume();
@@ -158,56 +195,49 @@ export const SnellenTest = ({ onComplete }: SnellenTestProps): JSX.Element => {
         if (!isPermissionModalOpen && time === 0 && !isTracking) setIsTracking(true);
     }, [isPermissionModalOpen]);
 
+    const sendTestResult = async (_result: { score: number; distance: number; mistakes: string[]; }) => {
+        try {
+            const user_result = {
+                normal_acuity: 40,
+                user_acuity: Math.floor((time / maxTestDuration) * 100),
+                distance: distance,
+            };
 
-    const sendTestResult = async () => {
-    try {
-        const user_result = {
-            normal_acuity: 40,
-            user_acuity: Math.floor((time / maxTestDuration) * 100),
-            distance: distance,
-        };
+            // Refresh token
+            const authResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/tokenn`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    refresh_token: localStorage.getItem("refresh_token"),
+                }),
+            });
+            const auth = await authResponse.json();
+            const usertoken = auth.access_token;
+            const refresh_token = auth.refresh_token;
 
-        // Refresh token
-        const authResponse = await fetch("https://opticheck.vercel.app/api/v1/auth/tokenn", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify({
-                refresh_token: localStorage.getItem("refresh_token"),
-            }),
-        });
-        const auth = await authResponse.json();
-        //console.log("Auth response:", auth);
-        const usertoken = auth.access_token;
-        const refresh_token = auth.refresh_token;
+            // Store tokens
+            localStorage.setItem("access_token", usertoken);
+            localStorage.setItem("refresh_token", refresh_token);
 
-        // Store tokens
-        localStorage.setItem("access_token", usertoken);
-        localStorage.setItem("refresh_token", refresh_token);
+            await fetch(`${import.meta.env.VITE_INFURA_ID}/api/v1/test/snellen-test`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${usertoken}`,
+                },
+                body: JSON.stringify(user_result),
+                credentials: "include",
+            });
 
-        console.log("Sending test result:", user_result);
-
-        const response = await fetch("https://opticheck.vercel.app/api/v1/test/snellen-test", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${usertoken}`,
-            },
-            body: JSON.stringify(user_result),
-            credentials: "include",
-        });
-
-        if (!response.ok) throw new Error("Failed to submit test results");
-
-        toast.success("Test result submitted successfully");
-    } catch (err) {
-        toast.error("Failed to send test results");
-        console.error("Submission error:", err);
-    }
-};
-
+            toast.success("Test result submitted successfully");
+        } catch (err) {
+            toast.error("Failed to send test results");
+            console.error("Submission error:", err);
+        }
+    };
 
     if (!isMobileOrTablet) {
         return (
@@ -226,21 +256,21 @@ export const SnellenTest = ({ onComplete }: SnellenTestProps): JSX.Element => {
                 onAllow={handleAllowAccess}
                 onCancel={handleCancelPermission}
             />
+            {/* Test Complete Modal */}
             {showNotification && (
-                <div className="absolute inset-0 flex items-center justify-center bg-[#FFFFFF] bg-opacity-50 z-50">
-                    <div className="bg-white rounded-lg p-6 shadow-lg text-center">
-                        <h2 className="text-lg font-bold text-gray-800 mb-4">
+                <div className="absolute inset-0 flex items-center justify-center bg-[#FFFFFF] bg-opacity-50 z-50" role="dialog" aria-modal="true">
+                    <div className="bg-white rounded-lg p-6 shadow-lg text-center max-w-xs w-full">
+                        <h2 className="text-lg font-bold text-black-800 mb-4">
                             Test Complete
                         </h2>
-                        <p className="text-sm text-gray-600 mb-6">
-                            Would you like to see your result or move to the next test?
+                        <p className="text-md text-black-600 mb-6">
+                            Would you like to see your result or continue to the next test?
                         </p>
                         <div className="flex flex-col gap-2">
                             <button
                                 onClick={() => {
                                     setShowNotification(false);
-                                    // Show result modal or navigate to result page
-                                    onComplete({ score: Math.floor((time / maxTestDuration) * 100), distance, mistakes });
+                                    setShowResult(true);
                                 }}
                                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                             >
@@ -249,8 +279,7 @@ export const SnellenTest = ({ onComplete }: SnellenTestProps): JSX.Element => {
                             <button
                                 onClick={() => {
                                     setShowNotification(false);
-                                    // Move to next test (parent should handle this in onComplete)
-                                    onComplete({ score: Math.floor((time / maxTestDuration) * 100), distance, mistakes });
+                                    navigate(testOrder[nextTestIndex]);
                                 }}
                                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
                             >
@@ -259,6 +288,32 @@ export const SnellenTest = ({ onComplete }: SnellenTestProps): JSX.Element => {
                         </div>
                     </div>
                 </div>
+            )}
+            {/* Result Modal */}
+            {showResult && (
+                // <div className="absolute inset-0 flex items-center justify-center bg-[#FFFFFF] bg-opacity-70 z-50" role="dialog" aria-modal="true">
+                //     <div className="bg-white rounded-lg p-6 shadow-lg text-center max-w-xs w-full">
+                //         <h2 className="text-lg font-bold text-gray-800 mb-4">
+                //             Your Result
+                //         </h2>
+                //         <p className="text-sm text-gray-600 mb-4">
+                //             Score: {Math.floor((time / maxTestDuration) * 100)}%
+                //         </p>
+                //         <p className="text-sm text-gray-600 mb-6">
+                //             Distance: {distance}cm
+                //         </p>
+                //         <button
+                //             onClick={() => {
+                //                 setShowResult(false);
+                //                 onComplete({ score: Math.floor((time / maxTestDuration) * 100), distance, mistakes });
+                //             }}
+                //             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                //         >
+                //             Close
+                //         </button>
+                //     </div>
+                // </div>
+                <Link to="/TestResult" />
             )}
             <main className="w-full h-full mt-[14px] bg-white">
                 <div className="flex w-full items-center justify-between px-4 py-0 mt-[30px]">

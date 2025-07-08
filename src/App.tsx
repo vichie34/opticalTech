@@ -42,7 +42,7 @@ const App = () => {
           <Route path="/Changepassword" element={<ChangePassword />} />
           <Route path="/UpdateProfile" element={<UpdateProfile />} />
           <Route path="/History" element={<History />} />
-          <Route path="/Test1" element={<SnellenTest onComplete={function (result: { score: number; distance: number; }): void {
+          <Route path="/Test/Snellen" element={<SnellenTest onComplete={function (): void {
             throw new Error('Function not implemented.');
           }} />} />
 

@@ -2,6 +2,7 @@ import { JSX, useEffect, useState, useRef } from "react";
 import { Card, CardContent } from "../../ux/card";
 import { Progress } from "../../ux/progress";
 import PermissionModal from "../../Dashboard/Sections/Modal/PermissionModal";
+import { useNavigate } from "react-router-dom";
 
 interface ColorBlindnessTestProps {
     onComplete: (result: { score: number; distance: number }) => void;
@@ -15,6 +16,7 @@ export const ColorBlindnessTest = ({ onComplete }: ColorBlindnessTestProps): JSX
     const [opacity, setOpacity] = useState(1);
     const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
     const [showNotification, setShowNotification] = useState(false);
+    const [showResult, setShowResult] = useState(false);
     const [isListening, setIsListening] = useState(false);
     const [isMobileOrTablet, setIsMobileOrTablet] = useState(true);
     const [animationSpeed, setAnimationSpeed] = useState(1);
@@ -26,6 +28,16 @@ export const ColorBlindnessTest = ({ onComplete }: ColorBlindnessTestProps): JSX
     const analyserRef = useRef<AnalyserNode | null>(null);
     const dataArrayRef = useRef<Uint8Array | null>(null);
     const mediaStreamRef = useRef<MediaStream | null>(null);
+
+    const navigate = useNavigate();
+    // Test order for navigation
+    const testOrder = [
+        "/test/colorblindness",
+        "/test/tumbling-e",
+        "/test/lea-symbols",
+        "/test/contrast-sensitivity"
+    ];
+    const currentTestIndex = 0; // 0 for ColorBlindnessTest
 
     useEffect(() => {
         const permissionsGranted = localStorage.getItem("permissionsGranted");
@@ -71,7 +83,6 @@ export const ColorBlindnessTest = ({ onComplete }: ColorBlindnessTestProps): JSX
                         setIsTracking(false);
                         setShowNotification(true);
                         clearInterval(timer!);
-                        onComplete({ score: Math.floor((newTime / maxTestDuration) * 100), distance });
                         return maxTestDuration;
                     }
                     return newTime;
@@ -167,15 +178,78 @@ export const ColorBlindnessTest = ({ onComplete }: ColorBlindnessTestProps): JSX
                 onAllow={handleAllowAccess}
                 onCancel={handleCancelPermission}
             />
+            {/* Test Complete Modal */}
             {showNotification && (
-                <div className="absolute inset-0 flex items-center justify-center bg-[#FFFFFF] bg-opacity-50 z-50">
-                    <div className="bg-white rounded-lg p-6 shadow-lg text-center">
+                <div className="absolute inset-0 flex items-center justify-center bg-[#FFFFFF] bg-opacity-50 z-50" role="dialog" aria-modal="true">
+                    <div className="bg-white rounded-lg p-6 shadow-lg text-center max-w-xs w-full">
                         <h2 className="text-lg font-bold text-gray-800 mb-4">
                             Test Complete
                         </h2>
                         <p className="text-sm text-gray-600 mb-6">
-                            Please proceed to the next test.
+                            Would you like to see your result or continue to the next test?
                         </p>
+                        <div className="flex flex-col gap-2">
+                            <button
+                                onClick={() => {
+                                    setShowNotification(false);
+                                    setShowResult(true);
+                                }}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                            >
+                                See Result
+                            </button>
+                            {currentTestIndex < testOrder.length - 1 ? (
+                                <button
+                                    onClick={() => {
+                                        setShowNotification(false);
+                                        navigate(testOrder[currentTestIndex + 1]);
+                                    }}
+                                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
+                                >
+                                    Next Test
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => {
+                                        setShowNotification(false);
+                                        setTime(0);
+                                        setFontSize(20);
+                                        setOpacity(1);
+                                        setCurrentSymbol("🔴");
+                                        setIsTracking(true);
+                                        setShowResult(false);
+                                    }}
+                                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
+                                >
+                                    Restart
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Result Modal */}
+            {showResult && (
+                <div className="absolute inset-0 flex items-center justify-center bg-[#FFFFFF] bg-opacity-70 z-50" role="dialog" aria-modal="true">
+                    <div className="bg-white rounded-lg p-6 shadow-lg text-center max-w-xs w-full">
+                        <h2 className="text-lg font-bold text-gray-800 mb-4">
+                            Your Result
+                        </h2>
+                        <p className="text-sm text-gray-600 mb-4">
+                            Score: {Math.floor((time / maxTestDuration) * 100)}%
+                        </p>
+                        <p className="text-sm text-gray-600 mb-6">
+                            Distance: {distance}cm
+                        </p>
+                        <button
+                            onClick={() => {
+                                setShowResult(false);
+                                onComplete({ score: Math.floor((time / maxTestDuration) * 100), distance });
+                            }}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                        >
+                            Close
+                        </button>
                     </div>
                 </div>
             )}

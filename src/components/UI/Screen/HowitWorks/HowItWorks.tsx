@@ -22,7 +22,7 @@ export const HowItWorks = (): JSX.Element => {
         {
             title: "Position your Device",
             description: "Hold your device at arm's lenghth",
-            icon: "/assets/Frame 2147224506 (3).svg",
+            icon: "/assets/Frame 2147224506 (1).png",
             bgColor: "bg-blue-100",
         },
         {
@@ -34,7 +34,7 @@ export const HowItWorks = (): JSX.Element => {
         {
             title: "Voice Commands",
             description: "Speak the letters you see clearly",
-            icon: "/assets/Frame 2147224506 (4).svg",
+            icon: "/assets/Frame 2147224506 (3).png",
             bgColor: "bg-emerald-50",
         },
     ];
@@ -99,7 +99,7 @@ export const HowItWorks = (): JSX.Element => {
                                         className={`relative w-[35px] h-[35px] ${card.bgColor} rounded-[100px] overflow-hidden`}
                                     >
                                         <img
-                                            className="absolute w-[18px] h-[18px] top-2 left-2"
+                                            // className="absolute w-[18px] h-[18px] top-2 left-2"
                                             alt={card.title}
                                             src={card.icon}
                                         />

@@ -10,8 +10,8 @@ import { Button } from "../../ux/button";
 import { Badge } from "../../ux/badge";
 import { JSX } from "react";
 
-function goBack() {
-    window.history.back;
+function goBack(): void {
+    window.history.back();
 }
 
 export const TestResult = (): JSX.Element => {
@@ -89,7 +89,7 @@ export const TestResult = (): JSX.Element => {
     return (
         <main className="relative w-full max-w-[375px] h-[812px] bg-[#f9f9f9] mx-auto">
             {/* Header */}
-            <header className="flex w-[344px] items-center gap-3 absolute top-20 left-4">
+            <header className="flex w-[344px] items-center gap-3 absolute top-10 left-4">
                 <Button variant="ghost" size="icon" className="p-0 h-6 w-6" onClick={goBack}>
                     <ArrowLeftIcon className="h-6 w-6" />
                 </Button>
