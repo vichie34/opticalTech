@@ -1,3 +1,45 @@
+# Opticheck Frontend
+
+
+Follow these steps to install Node.js and npm properly using the terminal.
+
+### ✅ Recommended Installation (using DNF)
+
+1. **Open your terminal.**
+
+2. **Check available Node.js streams:**
+
+   ```
+   sudo dnf module list nodejs
+   ```
+
+Look for a version you'd like to install (e.g., 18 is a good LTS choice).
+
+Enable the Node.js module stream:
+
+    ```
+    sudo dnf module enable nodejs:18 -y
+    ```
+Install Node.js and npm:
+    ```
+    sudo dnf install nodejs -y
+    ```
+Verify installation:
+  ```
+    node -v
+    npm -v
+  ```
+
+Once installed, you can now run:
+  ```
+  npm install
+  npm run dev
+  ```
+
+
+
+
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
