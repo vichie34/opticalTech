@@ -9,7 +9,7 @@ interface ColorBlindnessTestProps {
     onComplete: (result: { score: number; distance: number; mistakes: string[] }) => void;
 }
 
-export const ColorBlindnessTest = ({ onComplete }: ColorBlindnessTestProps): JSX.Element => {
+export const ColorBlindnessTest = ({ }: ColorBlindnessTestProps): JSX.Element => {
     const [time, setTime] = useState(0);
     const [isTracking, setIsTracking] = useState(false);
     const [currentSymbol, setCurrentSymbol] = useState("🔴");
