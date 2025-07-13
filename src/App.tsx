@@ -18,6 +18,7 @@ import LanguageSelection from './components/Navigation/lang-selection';
 import ChangePassword from './components/Navigation/changepassword';
 import History from './components/Navigation/history';
 import { SnellenTest } from './components/UI/Screen/Test/SnellenTest';
+import { ColorBlindnessTest } from './components/UI/Screen/Test/ColorBlindnessTest';
 
 const App = () => {
   return (
@@ -43,6 +44,9 @@ const App = () => {
           <Route path="/UpdateProfile" element={<UpdateProfile />} />
           <Route path="/History" element={<History />} />
           <Route path="/Test/Snellen" element={<SnellenTest onComplete={function (): void {
+            throw new Error('Function not implemented.');
+          }} />} />
+          <Route path="/Test/Colorblindness" element={< ColorBlindnessTest onComplete={function (result: { score: number; distance: number; }): void {
             throw new Error('Function not implemented.');
           }} />} />
 

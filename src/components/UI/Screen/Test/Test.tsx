@@ -215,6 +215,7 @@ export const Test = (): JSX.Element => {
 
                 const updateVolume = () => {
                     if (analyserRef.current && dataArrayRef.current) {
+                        //@ts-ignore
                         analyserRef.current.getByteTimeDomainData(dataArrayRef.current);
                         // Calculate average volume
                         let sum = 0;

@@ -11,8 +11,8 @@ export const ContrastSensitivityTest = ({ onComplete }: ContrastSensitivityTestP
     const [time, setTime] = useState(0);
     const [isTracking, setIsTracking] = useState(false);
     const [currentSymbol, setCurrentSymbol] = useState("A");
-    const [fontSize, setFontSize] = useState(20);
-    const [opacity, setOpacity] = useState(0.7);
+    const [fontSize] = useState(20);
+    const [opacity] = useState(0.7);
     const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
     const [showNotification, setShowNotification] = useState(false);
     const [isListening, setIsListening] = useState(false);
@@ -103,6 +103,7 @@ export const ContrastSensitivityTest = ({ onComplete }: ContrastSensitivityTestP
 
                 const updateVolume = () => {
                     if (analyserRef.current && dataArrayRef.current) {
+                        //@ts-ignore
                         analyserRef.current.getByteTimeDomainData(dataArrayRef.current);
                         let sum = 0;
                         for (let i = 0; i < dataArrayRef.current.length; i++) {

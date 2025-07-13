@@ -11,8 +11,8 @@ export const TumblingETest = ({ onComplete }: TumblingETestProps): JSX.Element =
     const [time, setTime] = useState(0);
     const [isTracking, setIsTracking] = useState(false);
     const [currentSymbol, setCurrentSymbol] = useState("E");
-    const [fontSize, setFontSize] = useState(20);
-    const [opacity, setOpacity] = useState(1);
+    const [fontSize] = useState(20);
+    const [opacity] = useState(1);
     const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
     const [showNotification, setShowNotification] = useState(false);
     const [isListening, setIsListening] = useState(false);
@@ -106,6 +106,7 @@ export const TumblingETest = ({ onComplete }: TumblingETestProps): JSX.Element =
 
                 const updateVolume = () => {
                     if (analyserRef.current && dataArrayRef.current) {
+                        //@ts-ignore
                         analyserRef.current.getByteTimeDomainData(dataArrayRef.current);
                         let sum = 0;
                         for (let i = 0; i < dataArrayRef.current.length; i++) {

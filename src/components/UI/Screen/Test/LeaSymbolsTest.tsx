@@ -103,6 +103,7 @@ export const LeaSymbolsTest = ({ onComplete }: LeaSymbolsTestProps): JSX.Element
 
                 const updateVolume = () => {
                     if (analyserRef.current && dataArrayRef.current) {
+                        //@ts-ignore
                         analyserRef.current.getByteTimeDomainData(dataArrayRef.current);
                         let sum = 0;
                         for (let i = 0; i < dataArrayRef.current.length; i++) {

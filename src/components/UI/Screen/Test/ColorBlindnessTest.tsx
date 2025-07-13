@@ -2,10 +2,11 @@ import { JSX, useEffect, useState, useRef } from "react";
 import { Card, CardContent } from "../../ux/card";
 import { Progress } from "../../ux/progress";
 import PermissionModal from "../../Dashboard/Sections/Modal/PermissionModal";
-import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
+import { Link, useNavigate } from "react-router-dom";
 
 interface ColorBlindnessTestProps {
-    onComplete: (result: { score: number; distance: number }) => void;
+    onComplete: (result: { score: number; distance: number; mistakes: string[] }) => void;
 }
 
 export const ColorBlindnessTest = ({ onComplete }: ColorBlindnessTestProps): JSX.Element => {
@@ -20,6 +21,7 @@ export const ColorBlindnessTest = ({ onComplete }: ColorBlindnessTestProps): JSX
     const [isListening, setIsListening] = useState(false);
     const [isMobileOrTablet, setIsMobileOrTablet] = useState(true);
     const [animationSpeed, setAnimationSpeed] = useState(1);
+    const [mistakes] = useState<string[]>([]);
 
     const maxTestDuration = 24;
     const distance = 40; // cm
@@ -83,6 +85,8 @@ export const ColorBlindnessTest = ({ onComplete }: ColorBlindnessTestProps): JSX
                         setIsTracking(false);
                         setShowNotification(true);
                         clearInterval(timer!);
+                        const result = { score: Math.floor((newTime / maxTestDuration) * 100), distance, mistakes };
+                        sendTestResult(result);
                         return maxTestDuration;
                     }
                     return newTime;
@@ -114,6 +118,7 @@ export const ColorBlindnessTest = ({ onComplete }: ColorBlindnessTestProps): JSX
 
                 const updateVolume = () => {
                     if (analyserRef.current && dataArrayRef.current) {
+                        //@ts-ignore
                         analyserRef.current.getByteTimeDomainData(dataArrayRef.current);
                         let sum = 0;
                         for (let i = 0; i < dataArrayRef.current.length; i++) {
@@ -160,6 +165,50 @@ export const ColorBlindnessTest = ({ onComplete }: ColorBlindnessTestProps): JSX
     useEffect(() => {
         if (!isPermissionModalOpen && time === 0 && !isTracking) setIsTracking(true);
     }, [isPermissionModalOpen]);
+
+    const sendTestResult = async (_result: { score: number; distance: number; mistakes: string[]; }) => {
+        try {
+            const user_result = {
+                normal_acuity: 40,
+                user_acuity: Math.floor((time / maxTestDuration) * 100),
+                distance: distance,
+            };
+
+            // Refresh token
+            const authResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/tokenn`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    refresh_token: localStorage.getItem("refresh_token"),
+                }),
+            });
+            const auth = await authResponse.json();
+            const usertoken = auth.access_token;
+            const refresh_token = auth.refresh_token;
+
+            // Store tokens
+            localStorage.setItem("access_token", usertoken);
+            localStorage.setItem("refresh_token", refresh_token);
+            //ROUTE FOR THIS TEST*
+            await fetch(`${import.meta.env.VITE_INFURA_ID}/api/v1/test/****`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${usertoken}`,
+                },
+                body: JSON.stringify(user_result),
+                credentials: "include",
+            });
+
+            toast.success("Test result submitted successfully");
+        } catch (err) {
+            toast.error("Failed to send test results");
+            console.error("Submission error:", err);
+        }
+    };
 
     if (!isMobileOrTablet) {
         return (
@@ -230,28 +279,29 @@ export const ColorBlindnessTest = ({ onComplete }: ColorBlindnessTestProps): JSX
             )}
             {/* Result Modal */}
             {showResult && (
-                <div className="absolute inset-0 flex items-center justify-center bg-[#FFFFFF] bg-opacity-70 z-50" role="dialog" aria-modal="true">
-                    <div className="bg-white rounded-lg p-6 shadow-lg text-center max-w-xs w-full">
-                        <h2 className="text-lg font-bold text-gray-800 mb-4">
-                            Your Result
-                        </h2>
-                        <p className="text-sm text-gray-600 mb-4">
-                            Score: {Math.floor((time / maxTestDuration) * 100)}%
-                        </p>
-                        <p className="text-sm text-gray-600 mb-6">
-                            Distance: {distance}cm
-                        </p>
-                        <button
-                            onClick={() => {
-                                setShowResult(false);
-                                onComplete({ score: Math.floor((time / maxTestDuration) * 100), distance });
-                            }}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                        >
-                            Close
-                        </button>
-                    </div>
-                </div>
+                // <div className="absolute inset-0 flex items-center justify-center bg-[#FFFFFF] bg-opacity-70 z-50" role="dialog" aria-modal="true">
+                //     <div className="bg-white rounded-lg p-6 shadow-lg text-center max-w-xs w-full">
+                //         <h2 className="text-lg font-bold text-gray-800 mb-4">
+                //             Your Result
+                //         </h2>
+                //         <p className="text-sm text-gray-600 mb-4">
+                //             Score: {Math.floor((time / maxTestDuration) * 100)}%
+                //         </p>
+                //         <p className="text-sm text-gray-600 mb-6">
+                //             Distance: {distance}cm
+                //         </p>
+                //         <button
+                //             onClick={() => {
+                //                 setShowResult(false);
+                //                 onComplete({ score: Math.floor((time / maxTestDuration) * 100), distance });
+                //             }}
+                //             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                //         >
+                //             Close
+                //         </button>
+                //     </div>
+                // </div>
+                <Link to={"/TestResult"}></Link>
             )}
             <main className="w-full h-full mt-[14px] bg-white">
                 <div className="flex w-full items-center justify-between px-4 py-0 mt-[30px]">

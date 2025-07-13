@@ -122,29 +122,6 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
                 dataArrayRef.current = new Uint8Array(analyserRef.current.frequencyBinCount);
 
                 const updateVolume = () => {
-                    // if (analyserRef.current && dataArrayRef.current) {
-                    //     analyserRef.current.getByteTimeDomainData(dataArrayRef.current!);
-                    //     let sum = 0;
-                    //     for (let i = 0; i < dataArrayRef.current.length; i++) {
-                    //         const val = dataArrayRef.current[i] - 128;
-                    //         sum += val * val;
-                    //     }
-                    //     const rms = Math.sqrt(sum / dataArrayRef.current.length);
-                    //     const speed = Math.max(0.5, 2 - rms / 20);
-                    //     setAnimationSpeed(speed);
-                    // }
-                    // if (analyserRef.current && dataArrayRef.current) {
-                    //     const dataArray = dataArrayRef.current;
-                    //     analyserRef.current.getByteTimeDomainData(dataArray);
-                    //     let sum = 0;
-                    //     for (let i = 0; i < dataArray.length; i++) {
-                    //         const val = dataArray[i] - 128;
-                    //         sum += val * val;
-                    //     }
-                    //     const rms = Math.sqrt(sum / dataArray.length);
-                    //     const speed = Math.max(0.5, 2 - rms / 20);
-                    //     setAnimationSpeed(speed);
-                    // }
                     if (analyserRef.current && dataArrayRef.current) {
                         // @ts-ignore
                         analyserRef.current.getByteTimeDomainData(dataArrayRef.current!);
@@ -313,7 +290,7 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
                 //         </button>
                 //     </div>
                 // </div>
-                <Link to="/TestResult" />
+                <Link to={"/TestResult"} />
             )}
             <main className="w-full h-full mt-[14px] bg-white">
                 <div className="flex w-full items-center justify-between px-4 py-0 mt-[30px]">
