@@ -2,6 +2,8 @@ import { JSX, useEffect, useState, useRef } from "react";
 import { Card, CardContent } from "../../ux/card";
 import { Progress } from "../../ux/progress";
 import PermissionModal from "../../Dashboard/Sections/Modal/PermissionModal";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 interface LeaSymbolsTestProps {
     onComplete: (result: { score: number; distance: number }) => void;
@@ -18,7 +20,7 @@ export const LeaSymbolsTest = ({ onComplete }: LeaSymbolsTestProps): JSX.Element
     const [isListening, setIsListening] = useState(false);
     const [isMobileOrTablet, setIsMobileOrTablet] = useState(true);
     const [animationSpeed, setAnimationSpeed] = useState(1);
-
+    const navigate = useNavigate();
     const maxTestDuration = 24;
     const distance = 40; // cm
 
@@ -61,6 +63,52 @@ export const LeaSymbolsTest = ({ onComplete }: LeaSymbolsTestProps): JSX.Element
         setCurrentSymbol(newSymbol);
     };
 
+    // Add sendTestResult function
+    const sendTestResult = async (_result: { score: number; distance: number }) => {
+        try {
+            const user_result = {
+                normal_acuity: 40,
+                user_acuity: Math.floor((time / maxTestDuration) * 100),
+                distance: distance,
+            };
+
+            // Refresh token
+            const authResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/tokenn`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    refresh_token: localStorage.getItem("refresh_token"),
+                }),
+            });
+            const auth = await authResponse.json();
+            const usertoken = auth.access_token;
+            const refresh_token = auth.refresh_token;
+
+            // Store tokens
+            localStorage.setItem("access_token", usertoken);
+            localStorage.setItem("refresh_token", refresh_token);
+
+            // Update with correct endpoint for Lea Symbols test
+            await fetch(`${import.meta.env.VITE_INFURA_ID}/api/v1/test/lea-symbols-test`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${usertoken}`,
+                },
+                body: JSON.stringify(user_result),
+                credentials: "include",
+            });
+
+            toast.success("Test result submitted successfully");
+        } catch (err) {
+            toast.error("Failed to send test results");
+            console.error("Submission error:", err);
+        }
+    };
+
     useEffect(() => {
         let timer: NodeJS.Timeout | null = null;
         if (isTracking) {
@@ -71,6 +119,7 @@ export const LeaSymbolsTest = ({ onComplete }: LeaSymbolsTestProps): JSX.Element
                         setIsTracking(false);
                         setShowNotification(true);
                         clearInterval(timer!);
+                        sendTestResult({ score: Math.floor((newTime / maxTestDuration) * 100), distance });
                         onComplete({ score: Math.floor((newTime / maxTestDuration) * 100), distance });
                         return maxTestDuration;
                     }
@@ -175,8 +224,24 @@ export const LeaSymbolsTest = ({ onComplete }: LeaSymbolsTestProps): JSX.Element
                             Test Complete
                         </h2>
                         <p className="text-sm text-gray-600 mb-6">
-                            Please proceed to the next test.
+                            Your score: {Math.floor((time / maxTestDuration) * 100)}%
                         </p>
+                        <button
+                            onClick={() => {
+                                setShowNotification(false);
+                                navigate("/TestResult", {
+                                    state: {
+                                        testScore: Math.floor((time / maxTestDuration) * 100),
+                                        completedAt: new Date().toISOString(),
+                                        testType: "Lea Symbols",
+                                        distance,
+                                    }
+                                });
+                            }}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                        >
+                            See Result
+                        </button>
                     </div>
                 </div>
             )}

@@ -3,7 +3,7 @@ import { Card, CardContent } from "../../ux/card";
 import { Progress } from "../../ux/progress";
 import PermissionModal from "../../Dashboard/Sections/Modal/PermissionModal";
 import { toast } from "react-hot-toast";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 interface ColorBlindnessTestProps {
     onComplete: (result: { score: number; distance: number; mistakes: string[] }) => void;
@@ -17,7 +17,6 @@ export const ColorBlindnessTest = ({ }: ColorBlindnessTestProps): JSX.Element =>
     const [opacity, setOpacity] = useState(1);
     const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
     const [showNotification, setShowNotification] = useState(false);
-    const [showResult, setShowResult] = useState(false);
     const [isListening, setIsListening] = useState(false);
     const [isMobileOrTablet, setIsMobileOrTablet] = useState(true);
     const [animationSpeed, setAnimationSpeed] = useState(1);
@@ -234,14 +233,20 @@ export const ColorBlindnessTest = ({ }: ColorBlindnessTestProps): JSX.Element =>
                         <h2 className="text-lg font-bold text-gray-800 mb-4">
                             Test Complete
                         </h2>
-                        <p className="text-sm text-gray-600 mb-6">
+                        <p className="text-sm text-black-600 mb-6">
                             Would you like to see your result or continue to the next test?
                         </p>
                         <div className="flex flex-col gap-2">
                             <button
                                 onClick={() => {
                                     setShowNotification(false);
-                                    setShowResult(true);
+                                    navigate("/TestResult", {
+                                        state: {
+                                            testScore: Math.floor((time / maxTestDuration) * 100),
+                                            completedAt: new Date().toISOString(),
+                                            // add any other result data you want to show
+                                        }
+                                    });
                                 }}
                                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                             >
@@ -266,7 +271,6 @@ export const ColorBlindnessTest = ({ }: ColorBlindnessTestProps): JSX.Element =>
                                         setOpacity(1);
                                         setCurrentSymbol("🔴");
                                         setIsTracking(true);
-                                        setShowResult(false);
                                     }}
                                     className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
                                 >
@@ -276,32 +280,6 @@ export const ColorBlindnessTest = ({ }: ColorBlindnessTestProps): JSX.Element =>
                         </div>
                     </div>
                 </div>
-            )}
-            {/* Result Modal */}
-            {showResult && (
-                // <div className="absolute inset-0 flex items-center justify-center bg-[#FFFFFF] bg-opacity-70 z-50" role="dialog" aria-modal="true">
-                //     <div className="bg-white rounded-lg p-6 shadow-lg text-center max-w-xs w-full">
-                //         <h2 className="text-lg font-bold text-gray-800 mb-4">
-                //             Your Result
-                //         </h2>
-                //         <p className="text-sm text-gray-600 mb-4">
-                //             Score: {Math.floor((time / maxTestDuration) * 100)}%
-                //         </p>
-                //         <p className="text-sm text-gray-600 mb-6">
-                //             Distance: {distance}cm
-                //         </p>
-                //         <button
-                //             onClick={() => {
-                //                 setShowResult(false);
-                //                 onComplete({ score: Math.floor((time / maxTestDuration) * 100), distance });
-                //             }}
-                //             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                //         >
-                //             Close
-                //         </button>
-                //     </div>
-                // </div>
-                <Link to={"/TestResult"}></Link>
             )}
             <main className="w-full h-full mt-[14px] bg-white">
                 <div className="flex w-full items-center justify-between px-4 py-0 mt-[30px]">
