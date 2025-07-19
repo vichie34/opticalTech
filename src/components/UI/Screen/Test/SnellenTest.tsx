@@ -3,7 +3,7 @@ import { Card, CardContent } from "../../ux/card";
 import { Progress } from "../../ux/progress";
 import PermissionModal from "../../Dashboard/Sections/Modal/PermissionModal";
 import { toast } from "react-hot-toast";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 interface SnellenTestProps {
     onComplete: (result: { score: number; distance: number; mistakes: string[] }) => void;
@@ -17,7 +17,6 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
     const [opacity, setOpacity] = useState(1);
     const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
     const [showNotification, setShowNotification] = useState(false);
-    const [showResult, setShowResult] = useState(false);
     const [isListening, setIsListening] = useState(false);
     const [isMobileOrTablet, setIsMobileOrTablet] = useState(true);
     const [animationSpeed, setAnimationSpeed] = useState(1);
@@ -122,29 +121,6 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
                 dataArrayRef.current = new Uint8Array(analyserRef.current.frequencyBinCount);
 
                 const updateVolume = () => {
-                    // if (analyserRef.current && dataArrayRef.current) {
-                    //     analyserRef.current.getByteTimeDomainData(dataArrayRef.current!);
-                    //     let sum = 0;
-                    //     for (let i = 0; i < dataArrayRef.current.length; i++) {
-                    //         const val = dataArrayRef.current[i] - 128;
-                    //         sum += val * val;
-                    //     }
-                    //     const rms = Math.sqrt(sum / dataArrayRef.current.length);
-                    //     const speed = Math.max(0.5, 2 - rms / 20);
-                    //     setAnimationSpeed(speed);
-                    // }
-                    // if (analyserRef.current && dataArrayRef.current) {
-                    //     const dataArray = dataArrayRef.current;
-                    //     analyserRef.current.getByteTimeDomainData(dataArray);
-                    //     let sum = 0;
-                    //     for (let i = 0; i < dataArray.length; i++) {
-                    //         const val = dataArray[i] - 128;
-                    //         sum += val * val;
-                    //     }
-                    //     const rms = Math.sqrt(sum / dataArray.length);
-                    //     const speed = Math.max(0.5, 2 - rms / 20);
-                    //     setAnimationSpeed(speed);
-                    // }
                     if (analyserRef.current && dataArrayRef.current) {
                         // @ts-ignore
                         analyserRef.current.getByteTimeDomainData(dataArrayRef.current!);
@@ -270,7 +246,13 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
                             <button
                                 onClick={() => {
                                     setShowNotification(false);
-                                    setShowResult(true);
+                                    navigate("/TestResult", {
+                                        state: {
+                                            testScore: Math.floor((time / maxTestDuration) * 100),
+                                            completedAt: new Date().toISOString(),
+                                            // add any other result data you want to show
+                                        }
+                                    });
                                 }}
                                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                             >
@@ -288,32 +270,6 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
                         </div>
                     </div>
                 </div>
-            )}
-            {/* Result Modal */}
-            {showResult && (
-                // <div className="absolute inset-0 flex items-center justify-center bg-[#FFFFFF] bg-opacity-70 z-50" role="dialog" aria-modal="true">
-                //     <div className="bg-white rounded-lg p-6 shadow-lg text-center max-w-xs w-full">
-                //         <h2 className="text-lg font-bold text-gray-800 mb-4">
-                //             Your Result
-                //         </h2>
-                //         <p className="text-sm text-gray-600 mb-4">
-                //             Score: {Math.floor((time / maxTestDuration) * 100)}%
-                //         </p>
-                //         <p className="text-sm text-gray-600 mb-6">
-                //             Distance: {distance}cm
-                //         </p>
-                //         <button
-                //             onClick={() => {
-                //                 setShowResult(false);
-                //                 onComplete({ score: Math.floor((time / maxTestDuration) * 100), distance, mistakes });
-                //             }}
-                //             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                //         >
-                //             Close
-                //         </button>
-                //     </div>
-                // </div>
-                <Link to="/TestResult" />
             )}
             <main className="w-full h-full mt-[14px] bg-white">
                 <div className="flex w-full items-center justify-between px-4 py-0 mt-[30px]">

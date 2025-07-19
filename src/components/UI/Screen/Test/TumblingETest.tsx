@@ -2,6 +2,8 @@ import { JSX, useEffect, useState, useRef } from "react";
 import { Card, CardContent } from "../../ux/card";
 import { Progress } from "../../ux/progress";
 import PermissionModal from "../../Dashboard/Sections/Modal/PermissionModal";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 interface TumblingETestProps {
     onComplete: (result: { score: number; distance: number }) => void;
@@ -11,8 +13,8 @@ export const TumblingETest = ({ onComplete }: TumblingETestProps): JSX.Element =
     const [time, setTime] = useState(0);
     const [isTracking, setIsTracking] = useState(false);
     const [currentSymbol, setCurrentSymbol] = useState("E");
-    const [fontSize, setFontSize] = useState(20);
-    const [opacity, setOpacity] = useState(1);
+    const [fontSize] = useState(20);
+    const [opacity] = useState(1);
     const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
     const [showNotification, setShowNotification] = useState(false);
     const [isListening, setIsListening] = useState(false);
@@ -26,6 +28,54 @@ export const TumblingETest = ({ onComplete }: TumblingETestProps): JSX.Element =
     const analyserRef = useRef<AnalyserNode | null>(null);
     const dataArrayRef = useRef<Uint8Array | null>(null);
     const mediaStreamRef = useRef<MediaStream | null>(null);
+
+    const navigate = useNavigate();
+
+    // API: Send test result to backend
+    const sendTestResult = async (result: { score: number; distance: number }) => {
+        try {
+            const user_result = {
+                normal_acuity: 40,
+                user_acuity: result.score,
+                distance: result.distance,
+            };
+
+            // Refresh token
+            const authResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/tokenn`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    refresh_token: localStorage.getItem("refresh_token"),
+                }),
+            });
+            const auth = await authResponse.json();
+            const usertoken = auth.access_token;
+            const refresh_token = auth.refresh_token;
+
+            // Store tokens
+            localStorage.setItem("access_token", usertoken);
+            localStorage.setItem("refresh_token", refresh_token);
+
+            // Send result to Tumbling E endpoint
+            await fetch(`${import.meta.env.VITE_INFURA_ID}/api/v1/test/tumbling-e-test`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${usertoken}`,
+                },
+                body: JSON.stringify(user_result),
+                credentials: "include",
+            });
+
+            toast.success("Test result submitted successfully");
+        } catch (err) {
+            toast.error("Failed to send test results");
+            console.error("Submission error:", err);
+        }
+    };
 
     useEffect(() => {
         const permissionsGranted = localStorage.getItem("permissionsGranted");
@@ -73,8 +123,9 @@ export const TumblingETest = ({ onComplete }: TumblingETestProps): JSX.Element =
                         setIsTracking(false);
                         setShowNotification(true);
                         clearInterval(timer!);
-                        // Example score calculation
-                        onComplete({ score: Math.floor((newTime / maxTestDuration) * 100), distance });
+                        const score = Math.floor((newTime / maxTestDuration) * 100);
+                        sendTestResult({ score, distance });
+                        onComplete({ score, distance });
                         return maxTestDuration;
                     }
                     return newTime;
@@ -106,6 +157,7 @@ export const TumblingETest = ({ onComplete }: TumblingETestProps): JSX.Element =
 
                 const updateVolume = () => {
                     if (analyserRef.current && dataArrayRef.current) {
+                        //@ts-ignore
                         analyserRef.current.getByteTimeDomainData(dataArrayRef.current);
                         let sum = 0;
                         for (let i = 0; i < dataArrayRef.current.length; i++) {
@@ -177,8 +229,24 @@ export const TumblingETest = ({ onComplete }: TumblingETestProps): JSX.Element =
                             Test Complete
                         </h2>
                         <p className="text-sm text-gray-600 mb-6">
-                            Please proceed to the next test.
+                            Your score: {Math.floor((time / maxTestDuration) * 100)}%
                         </p>
+                        <button
+                            onClick={() => {
+                                setShowNotification(false);
+                                navigate("/TestResult", {
+                                    state: {
+                                        testScore: Math.floor((time / maxTestDuration) * 100),
+                                        completedAt: new Date().toISOString(),
+                                        testType: "Tumbling E",
+                                        distance,
+                                    }
+                                });
+                            }}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                        >
+                            See Result
+                        </button>
                     </div>
                 </div>
             )}

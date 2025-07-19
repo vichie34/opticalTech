@@ -10,26 +10,31 @@ const testCards = [
         id: 1,
         title: "Snellen Test",
         backgroundImage: "url('/assets/Depth 4, Frame 0.png')",
+        link: "/Test/Snellen",
     },
     {
         id: 2,
         title: "Color Blindness Test",
         backgroundImage: "url('/assets/Depth 4, Frame 2.png')",
+        link: "/Test/ColorBlindness",
     },
     {
         id: 3,
         title: "Tumbling E Test",
         backgroundImage: "url('/assets/Depth 4, Frame 0 (1).png')",
+        link: "/Test/TumblingE",
     },
     {
         id: 4,
         title: "Lea Symbols Test",
         backgroundImage: "url('/assets/Depth 4, Frame 0 (6).png')",
+        link: "/Test/LeaSymbols",
     },
     {
         id: 5,
         title: "Contrast Sensitivity Test",
         backgroundImage: "url('/assets/Depth 4, Frame 0 (7).png')",
+        link: "/Test/ContrastSensitivity",
     },
 ];
 
@@ -135,7 +140,7 @@ export const Frame = (): JSX.Element => {
                                     {test.title}
                                 </h3>
                                 <div className="flex items-end justify-between w-full">
-                                    <Link to="/Test/Snellen">
+                                    <Link to={test.link}>
                                         <Button
                                             variant="link"
                                             className="h-auto p-0 text-blue-600 text-base font-normal"
