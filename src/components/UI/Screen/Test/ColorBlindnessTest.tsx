@@ -1,4 +1,4 @@
-import { JSX, useEffect, useState, useRef } from "react";
+import { JSX, useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "../../ux/card";
 import { Progress } from "../../ux/progress";
 import PermissionModal from "../../Dashboard/Sections/Modal/PermissionModal";
@@ -20,7 +20,7 @@ export const ColorBlindnessTest = ({ }: ColorBlindnessTestProps): JSX.Element =>
     const [isListening, setIsListening] = useState(false);
     const [isMobileOrTablet, setIsMobileOrTablet] = useState(true);
     const [animationSpeed, setAnimationSpeed] = useState(1);
-    const [mistakes] = useState<string[]>([]);
+    const [mistakes, setMistakes] = useState<string[]>([]);
 
     const maxTestDuration = 24;
     const distance = 40; // cm
@@ -34,9 +34,9 @@ export const ColorBlindnessTest = ({ }: ColorBlindnessTestProps): JSX.Element =>
     // Test order for navigation
     const testOrder = [
         "/test/colorblindness",
-        "/test/tumbling-e",
-        "/test/lea-symbols",
-        "/test/contrast-sensitivity"
+        "/test/tumblinge",
+        "/test/leasymbols",
+        "/test/contrastsensitivity"
     ];
     const currentTestIndex = 0; // 0 for ColorBlindnessTest
 
@@ -74,6 +74,50 @@ export const ColorBlindnessTest = ({ }: ColorBlindnessTestProps): JSX.Element =>
         setCurrentSymbol(newSymbol);
     };
 
+    // Helper to normalize user speech for comparison
+    const normalizeAnswer = (answer: string) => {
+        answer = answer.trim().toLowerCase();
+        if (answer.includes("red")) return "🔴";
+        if (answer.includes("green")) return "🟢";
+        if (answer.includes("blue")) return "🔵";
+        if (answer.includes("yellow")) return "🟡";
+        return answer;
+    };
+
+    // Speech recognition logic for color blindness test
+    useEffect(() => {
+        if (!isListening) return;
+
+        // @ts-ignore
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return;
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = "en-US";
+        recognition.continuous = true;
+        recognition.interimResults = false;
+
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[event.results.length - 1][0].transcript;
+            const normalized = normalizeAnswer(transcript);
+
+            if (normalized !== currentSymbol) {
+                setMistakes((prev) => [...prev, transcript]);
+            }
+        };
+
+        recognition.onerror = () => { };
+        recognition.onend = () => {
+            if (isListening) recognition.start();
+        };
+
+        recognition.start();
+
+        return () => {
+            recognition.stop();
+        };
+    }, [isListening, currentSymbol]);
+
     useEffect(() => {
         let timer: NodeJS.Timeout | null = null;
         if (isTracking) {
@@ -94,7 +138,7 @@ export const ColorBlindnessTest = ({ }: ColorBlindnessTestProps): JSX.Element =>
             }, 1000);
         }
         return () => { if (timer) clearInterval(timer); };
-    }, [isTracking]);
+    }, [isTracking, mistakes]);
 
     const toggleTracking = () => setIsTracking((prev) => !prev);
 
@@ -138,7 +182,7 @@ export const ColorBlindnessTest = ({ }: ColorBlindnessTestProps): JSX.Element =>
         if (isListening) startAudio();
         else {
             if (mediaStreamRef.current) {
-                mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+                mediaStreamRef.current.getTracks().forEach((track: MediaStreamTrack) => track.stop());
                 mediaStreamRef.current = null;
             }
             if (audioContextRef.current) {
@@ -150,7 +194,7 @@ export const ColorBlindnessTest = ({ }: ColorBlindnessTestProps): JSX.Element =>
         }
         return () => {
             if (mediaStreamRef.current) {
-                mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+                mediaStreamRef.current.getTracks().forEach((track: MediaStreamTrack) => track.stop());
                 mediaStreamRef.current = null;
             }
             if (audioContextRef.current) {

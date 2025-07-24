@@ -15,11 +15,13 @@ export const Test = (): JSX.Element => {
     const [fontSize, setFontSize] = useState(20); // Numeric font size in vw
     const [opacity, setOpacity] = useState(1); // Opacity for fading effect
     const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false); // Modal state
-    const [results, setResults] = useState<Record<string, any>>({}); // Store results for all tests
+    // Removed unused 'results' state
     const [showNotification, setShowNotification] = useState(false); // Notification state
     const [isListening, setIsListening] = useState(false); // Listening state
     const [isMobileOrTablet, setIsMobileOrTablet] = useState(true); // Device type state
     const [animationSpeed, setAnimationSpeed] = useState(1); // Animation speed for graphic eq
+    const [correctCount, setCorrectCount] = useState(0);
+    const [incorrectCount, setIncorrectCount] = useState(0);
 
     const maxTestDuration = 24; // Duration for each test (in seconds)
 
@@ -119,13 +121,6 @@ export const Test = (): JSX.Element => {
                     const newTime = prevTime + 1;
 
                     if (newTime >= maxTestDuration) {
-                        // Save the result for the current test
-                        const currentTestType = testTypes[currentTestIndex];
-                        setResults((prevResults) => ({
-                            ...prevResults,
-                            [currentTestType]: Math.floor((newTime / maxTestDuration) * 100), // Example score
-                        }));
-
                         // Notify the user about the next test
                         setIsTracking(false);
                         setShowNotification(true);
@@ -155,16 +150,18 @@ export const Test = (): JSX.Element => {
 
 
     const startNextTest = () => {
-        setShowNotification(false); // Hide notification
+        setShowNotification(false);
         if (currentTestIndex + 1 < testTypes.length) {
             setCurrentTestIndex((prevIndex) => prevIndex + 1);
-            setTime(0); // Reset time for the next test
-            setFontSize(20); // Reset font size for Snellen Test
-            setOpacity(1); // Reset opacity for the next test
-            setIsTracking(true); // Start the next test
+            setTime(0);
+            setFontSize(20);
+            setOpacity(1);
+            setIsTracking(true);
         } else {
-            // All tests completed, navigate to results page
-            navigate("/testresult", { state: { results } });
+            // Calculate score based on correct/incorrect answers
+            const total = correctCount + incorrectCount;
+            const testScore = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+            navigate("/testresult", { state: { testScore, completedAt: new Date().toISOString() } });
         }
     };
 
@@ -272,6 +269,75 @@ export const Test = (): JSX.Element => {
             setIsTracking(true);
         }
     }, [isPermissionModalOpen]);
+
+    // Helper to normalize user speech for comparison
+    const normalizeAnswer = (answer: string, testType: string) => {
+        answer = answer.trim().toLowerCase();
+        if (testType === "Tumbling E") {
+            if (["e", "east"].includes(answer)) return "E";
+            if (["3", "three"].includes(answer)) return "3";
+            if (["m", "em"].includes(answer)) return "M";
+            if (["w", "double u", "w"].includes(answer)) return "W";
+        } else if (testType === "Lea Symbols") {
+            if (answer.includes("circle")) return "Circle";
+            if (answer.includes("square")) return "Square";
+            if (answer.includes("house")) return "House";
+            if (answer.includes("apple")) return "Apple";
+        } else if (testType === "Color Blindness") {
+            if (answer.includes("red")) return "🔴";
+            if (answer.includes("green")) return "🟢";
+            if (answer.includes("blue")) return "🔵";
+            if (answer.includes("yellow")) return "🟡";
+        } else if (testType === "Contrast Sensitivity" || testType === "Snellen Test") {
+            // Accept single letters
+            return answer.toUpperCase();
+        }
+        return answer;
+    };
+
+    // Speech recognition logic
+    useEffect(() => {
+        if (!isListening) return;
+
+        // @ts-ignore
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return;
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = "en-US";
+        recognition.continuous = true;
+        recognition.interimResults = false;
+
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[event.results.length - 1][0].transcript;
+            const currentTestType = testTypes[currentTestIndex];
+            const normalized = normalizeAnswer(transcript, currentTestType);
+
+            let isCorrect = false;
+            if (currentTestType === "Tumbling E" || currentTestType === "Lea Symbols" || currentTestType === "Color Blindness") {
+                isCorrect = normalized === currentSymbol;
+            } else if (currentTestType === "Contrast Sensitivity" || currentTestType === "Snellen Test") {
+                isCorrect = normalized === currentSymbol;
+            }
+
+            if (isCorrect) {
+                setCorrectCount((c) => c + 1);
+            } else {
+                setIncorrectCount((c) => c + 1);
+            }
+        };
+
+        recognition.onerror = () => { };
+        recognition.onend = () => {
+            if (isListening) recognition.start();
+        };
+
+        recognition.start();
+
+        return () => {
+            recognition.stop();
+        };
+    }, [isListening, currentSymbol, currentTestIndex]);
 
     if (!isMobileOrTablet) {
         return (
