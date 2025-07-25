@@ -19,6 +19,9 @@ import ChangePassword from './components/Navigation/changepassword';
 import History from './components/Navigation/history';
 import { SnellenTest } from './components/UI/Screen/Test/SnellenTest';
 import { ColorBlindnessTest } from './components/UI/Screen/Test/ColorBlindnessTest';
+import { TumblingETest } from './components/UI/Screen/Test/TumblingETest';
+import { LeaSymbolsTest } from './components/UI/Screen/Test/LeaSymbolsTest';
+import { ContrastSensitivityTest } from './components/UI/Screen/Test/ContrastSensitivityTest';
 
 const App = () => {
   return (
@@ -49,7 +52,15 @@ const App = () => {
           <Route path="/Test/Colorblindness" element={< ColorBlindnessTest onComplete={function (): void {
             throw new Error('Function not implemented.');
           }} />} />
-
+          <Route path="/Test/Tumbleetest" element={< TumblingETest onComplete={function (): void {
+            throw new Error('Function not implemented.');
+          }} />} />
+          <Route path="/Test/Leasymbols" element={< LeaSymbolsTest onComplete={function (): void {
+            throw new Error('Function not implemented.');
+          }} />} />
+          <Route path="/Test/ContrastSensitivity" element={< ContrastSensitivityTest onComplete={function (): void {
+            throw new Error('Function not implemented.');
+          }} />} />
         </Routes>
       </Router>
     </>

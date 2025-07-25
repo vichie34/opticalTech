@@ -20,6 +20,9 @@ export const ContrastSensitivityTest = ({ onComplete }: ContrastSensitivityTestP
     const [isListening, setIsListening] = useState(false);
     const [isMobileOrTablet, setIsMobileOrTablet] = useState(true);
     const [animationSpeed, setAnimationSpeed] = useState(1);
+    const [mistakes, setMistakes] = useState<string[]>([]);
+    const [totalQuestions, setTotalQuestions] = useState(0);
+    const [correctQuestions, setCorrectQuestions] = useState(0);
 
     const maxTestDuration = 24;
     const distance = 40; // cm
@@ -67,10 +70,19 @@ export const ContrastSensitivityTest = ({ onComplete }: ContrastSensitivityTestP
     // Add sendTestResult function
     const sendTestResult = async (_result: { score: number; distance: number }) => {
         try {
+            // Score based on correct/total questions
+            const score =
+                totalQuestions > 0
+                    ? Math.round((correctQuestions / totalQuestions) * 100)
+                    : 0;
+
             const user_result = {
                 normal_acuity: 40,
-                user_acuity: Math.floor((time / maxTestDuration) * 100),
+                user_acuity: score,
                 distance: distance,
+                mistakes,
+                totalQuestions,
+                correctQuestions,
             };
 
             // Refresh token
@@ -120,8 +132,8 @@ export const ContrastSensitivityTest = ({ onComplete }: ContrastSensitivityTestP
                         setIsTracking(false);
                         setShowNotification(true);
                         clearInterval(timer!);
-                        sendTestResult({ score: Math.floor((newTime / maxTestDuration) * 100), distance });
-                        onComplete({ score: Math.floor((newTime / maxTestDuration) * 100), distance });
+                        sendTestResult({ score: 0, distance }); // Score is calculated in sendTestResult
+                        onComplete({ score: totalQuestions > 0 ? Math.round((correctQuestions / totalQuestions) * 100) : 0, distance });
                         return maxTestDuration;
                     }
                     return newTime;
@@ -130,7 +142,7 @@ export const ContrastSensitivityTest = ({ onComplete }: ContrastSensitivityTestP
             }, 1000);
         }
         return () => { if (timer) clearInterval(timer); };
-    }, [isTracking]);
+    }, [isTracking, correctQuestions, totalQuestions]);
 
     const toggleTracking = () => setIsTracking((prev) => !prev);
 
@@ -174,7 +186,7 @@ export const ContrastSensitivityTest = ({ onComplete }: ContrastSensitivityTestP
         if (isListening) startAudio();
         else {
             if (mediaStreamRef.current) {
-                mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+                mediaStreamRef.current.getTracks().forEach((track: MediaStreamTrack) => track.stop());
                 mediaStreamRef.current = null;
             }
             if (audioContextRef.current) {
@@ -186,7 +198,7 @@ export const ContrastSensitivityTest = ({ onComplete }: ContrastSensitivityTestP
         }
         return () => {
             if (mediaStreamRef.current) {
-                mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+                mediaStreamRef.current.getTracks().forEach((track: MediaStreamTrack) => track.stop());
                 mediaStreamRef.current = null;
             }
             if (audioContextRef.current) {
@@ -200,6 +212,35 @@ export const ContrastSensitivityTest = ({ onComplete }: ContrastSensitivityTestP
     useEffect(() => {
         if (!isPermissionModalOpen && time === 0 && !isTracking) setIsTracking(true);
     }, [isPermissionModalOpen]);
+
+    // Helper to normalize user speech for comparison
+    const normalizeAnswer = (answer: string) => answer.trim().toUpperCase();
+
+    // Speech recognition logic for Contrast Sensitivity test
+    useEffect(() => {
+        if (!isListening) return;
+        // @ts-ignore
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return;
+        const recognition = new SpeechRecognition();
+        recognition.lang = "en-US";
+        recognition.continuous = true;
+        recognition.interimResults = false;
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[event.results.length - 1][0].transcript;
+            const normalized = normalizeAnswer(transcript);
+            setTotalQuestions((prev) => prev + 1);
+            if (normalized === currentSymbol) {
+                setCorrectQuestions((prev) => prev + 1);
+            } else {
+                setMistakes((prev) => [...prev, transcript]);
+            }
+        };
+        recognition.onerror = () => { };
+        recognition.onend = () => { if (isListening) recognition.start(); };
+        recognition.start();
+        return () => { recognition.stop(); };
+    }, [isListening, currentSymbol]);
 
     if (!isMobileOrTablet) {
         return (

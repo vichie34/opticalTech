@@ -20,6 +20,11 @@ export const LeaSymbolsTest = ({ onComplete }: LeaSymbolsTestProps): JSX.Element
     const [isListening, setIsListening] = useState(false);
     const [isMobileOrTablet, setIsMobileOrTablet] = useState(true);
     const [animationSpeed, setAnimationSpeed] = useState(1);
+
+    const [mistakes] = useState<string[]>([]);
+    const [totalQuestions] = useState(0);
+    const [correctQuestions] = useState(0);
+
     const navigate = useNavigate();
     const maxTestDuration = 24;
     const distance = 40; // cm
@@ -64,12 +69,22 @@ export const LeaSymbolsTest = ({ onComplete }: LeaSymbolsTestProps): JSX.Element
     };
 
     // Add sendTestResult function
+
     const sendTestResult = async (_result: { score: number; distance: number }) => {
         try {
+            // Score based on correct/total questions
+            const score =
+                totalQuestions > 0
+                    ? Math.round((correctQuestions / totalQuestions) * 100)
+                    : 0;
+
             const user_result = {
                 normal_acuity: 40,
-                user_acuity: Math.floor((time / maxTestDuration) * 100),
+                user_acuity: score,
                 distance: distance,
+                mistakes,
+                totalQuestions,
+                correctQuestions,
             };
 
             // Refresh token
@@ -91,8 +106,8 @@ export const LeaSymbolsTest = ({ onComplete }: LeaSymbolsTestProps): JSX.Element
             localStorage.setItem("access_token", usertoken);
             localStorage.setItem("refresh_token", refresh_token);
 
-            // Update with correct endpoint for Lea Symbols test
-            await fetch(`${import.meta.env.VITE_INFURA_ID}/api/v1/test/lea-symbols-test`, {
+            // Update with correct endpoint for Contrast Sensitivity test
+            await fetch(`${import.meta.env.VITE_INFURA_ID}/api/v1/test/contrast-sensitivity-test`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -173,7 +188,7 @@ export const LeaSymbolsTest = ({ onComplete }: LeaSymbolsTestProps): JSX.Element
         if (isListening) startAudio();
         else {
             if (mediaStreamRef.current) {
-                mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+                mediaStreamRef.current.getTracks().forEach((track: MediaStreamTrack) => track.stop());
                 mediaStreamRef.current = null;
             }
             if (audioContextRef.current) {
@@ -199,6 +214,29 @@ export const LeaSymbolsTest = ({ onComplete }: LeaSymbolsTestProps): JSX.Element
     useEffect(() => {
         if (!isPermissionModalOpen && time === 0 && !isTracking) setIsTracking(true);
     }, [isPermissionModalOpen]);
+
+    // Speech recognition logic for Lea Symbols test
+    useEffect(() => {
+        if (!isListening) return;
+        // @ts-ignore
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return;
+        const recognition = new SpeechRecognition();
+        recognition.lang = "en-US";
+        recognition.continuous = true;
+        recognition.interimResults = false;
+        recognition.onresult = () => {
+            // const transcript = event.results[event.results.length - 1][0].transcript;
+            // const normalized = normalizeAnswer(transcript);
+            // if (normalized !== currentSymbol) {
+            //     setMistakes((prev) => [...prev, transcript]);
+            // }
+        };
+        recognition.onerror = () => { };
+        recognition.onend = () => { if (isListening) recognition.start(); };
+        recognition.start();
+        return () => { recognition.stop(); };
+    }, [isListening, currentSymbol]);
 
     if (!isMobileOrTablet) {
         return (

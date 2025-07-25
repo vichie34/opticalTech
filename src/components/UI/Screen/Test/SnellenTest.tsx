@@ -4,6 +4,16 @@ import { Progress } from "../../ux/progress";
 import PermissionModal from "../../Dashboard/Sections/Modal/PermissionModal";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { useSpeechRecognition } from "react-speech-recognition";
+
+// Extend the Window interface to include SpeechRecognition types
+declare global {
+    interface Window {
+        SpeechRecognition?: typeof SpeechRecognition;
+        webkitSpeechRecognition?: typeof SpeechRecognition;
+        recognition?: SpeechRecognition;
+    }
+}
 
 interface SnellenTestProps {
     onComplete: (result: { score: number; distance: number; mistakes: string[] }) => void;
@@ -20,7 +30,7 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
     const [isListening, setIsListening] = useState(false);
     const [isMobileOrTablet, setIsMobileOrTablet] = useState(true);
     const [animationSpeed, setAnimationSpeed] = useState(1);
-    const [mistakes] = useState<string[]>([]);
+    const [mistakes, setMistakes] = useState<string[]>([]);
 
     const maxTestDuration = 24;
     const distance = 40;
@@ -39,6 +49,13 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
         "/test/contrast-sensitivity"
     ];
     const nextTestIndex = 0; // colorblindness is first in the order
+
+    // Speech recognition setup
+    const {
+        transcript,
+        resetTranscript,
+        browserSupportsSpeechRecognition,
+    } = useSpeechRecognition();
 
     useEffect(() => {
         const permissionsGranted = localStorage.getItem("permissionsGranted");
@@ -73,6 +90,7 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
         } while (newSymbol === currentSymbol);
         setCurrentSymbol(newSymbol);
         setFontSize((prevSize) => Math.max(prevSize - 2, 5));
+        resetTranscript();
     };
 
     useEffect(() => {
@@ -171,12 +189,41 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
         if (!isPermissionModalOpen && time === 0 && !isTracking) setIsTracking(true);
     }, [isPermissionModalOpen]);
 
+    // Start/stop listening based on isTracking
+    useEffect(() => {
+        if (!browserSupportsSpeechRecognition) return;
+        if (isTracking) {
+            window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            // @ts-ignore
+            window.recognition = window.recognition || new window.SpeechRecognition();
+            // @ts-ignore
+            window.recognition.continuous = true;
+            // @ts-ignore
+            window.recognition.start();
+        } else {
+            // @ts-ignore
+            if (window.recognition) window.recognition.stop();
+        }
+    }, [isTracking, browserSupportsSpeechRecognition]);
+
+    // Detect mistakes in spoken input
+    useEffect(() => {
+        if (!isTracking || !transcript) return;
+        const lastWord = transcript.trim().split(" ").pop()?.toUpperCase();
+        if (lastWord && lastWord !== currentSymbol) {
+            setMistakes((prev) => [...prev, lastWord]);
+        }
+        resetTranscript();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [transcript, currentSymbol, isTracking]);
+
     const sendTestResult = async (_result: { score: number; distance: number; mistakes: string[]; }) => {
         try {
             const user_result = {
                 normal_acuity: 40,
                 user_acuity: Math.floor((time / maxTestDuration) * 100),
                 distance: distance,
+                mistakes: mistakes,
             };
 
             // Refresh token
