@@ -25,6 +25,9 @@ export const ColorBlindnessTest = ({ }: ColorBlindnessTestProps): JSX.Element =>
     const maxTestDuration = 24;
     const distance = 40; // cm
 
+    const [total_questions] = useState(0);
+    const [correct_answers] = useState(0);
+
     const audioContextRef = useRef<AudioContext | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
     const dataArrayRef = useRef<Uint8Array | null>(null);
@@ -217,8 +220,13 @@ export const ColorBlindnessTest = ({ }: ColorBlindnessTestProps): JSX.Element =>
                 distance: distance,
             };
 
+            const backend_result = {
+                total_questions,
+                correct_answers,
+            };
+
             // Refresh token
-            const authResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/tokenn`, {
+            const authResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}api/v1/auth/tokenn`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -236,13 +244,13 @@ export const ColorBlindnessTest = ({ }: ColorBlindnessTestProps): JSX.Element =>
             localStorage.setItem("access_token", usertoken);
             localStorage.setItem("refresh_token", refresh_token);
             //ROUTE FOR THIS TEST*
-            await fetch(`${import.meta.env.VITE_INFURA_ID}/api/v1/test/****`, {
+            await fetch(`${import.meta.env.VITE_API_BASE_URL}api/v1/test/color-test`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${usertoken}`,
                 },
-                body: JSON.stringify(user_result),
+                body: JSON.stringify(backend_result),
                 credentials: "include",
             });
 

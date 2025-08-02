@@ -245,7 +245,7 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
             localStorage.setItem("access_token", usertoken);
             localStorage.setItem("refresh_token", refresh_token);
 
-            await fetch(`${import.meta.env.VITE_INFURA_ID}/api/v1/test/snellen-test`, {
+            await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/test/snellen-test`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
