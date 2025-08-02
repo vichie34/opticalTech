@@ -25,6 +25,9 @@ export const LeaSymbolsTest = ({ onComplete }: LeaSymbolsTestProps): JSX.Element
     const [totalQuestions] = useState(0);
     const [correctQuestions] = useState(0);
 
+    const [total_questions] = useState(0);
+    const [correct_answers] = useState(0);
+
     const navigate = useNavigate();
     const maxTestDuration = 24;
     const distance = 40; // cm
@@ -78,17 +81,22 @@ export const LeaSymbolsTest = ({ onComplete }: LeaSymbolsTestProps): JSX.Element
                     ? Math.round((correctQuestions / totalQuestions) * 100)
                     : 0;
 
-            const user_result = {
+            /* const user_result = {
                 normal_acuity: 40,
                 user_acuity: score,
                 distance: distance,
                 mistakes,
                 totalQuestions,
                 correctQuestions,
+            };*/
+
+            const backend_result = {
+                total_questions,
+                correct_answers,
             };
 
             // Refresh token
-            const authResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/tokenn`, {
+            const authResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}api/v1/auth/tokenn`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -107,13 +115,13 @@ export const LeaSymbolsTest = ({ onComplete }: LeaSymbolsTestProps): JSX.Element
             localStorage.setItem("refresh_token", refresh_token);
 
             // Update with correct endpoint for Contrast Sensitivity test
-            await fetch(`${import.meta.env.VITE_INFURA_ID}/api/v1/test/contrast-sensitivity-test`, {
+            await fetch(`${import.meta.env.VITE_API_BASE_URL}api/v1/test/lea-symbol-test`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${usertoken}`,
                 },
-                body: JSON.stringify(user_result),
+                body: JSON.stringify(backend_result),
                 credentials: "include",
             });
 

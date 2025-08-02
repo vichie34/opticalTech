@@ -27,6 +27,10 @@ export const TumblingETest = ({ onComplete }: TumblingETestProps): JSX.Element =
     const [totalQuestions] = useState(0);
     const [correctQuestions] = useState(0);
 
+
+    const [total_questions] = useState(0);
+    const [correct_answers] = useState(0);
+
     const audioContextRef = useRef<AudioContext | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
     const dataArrayRef = useRef<Uint8Array | null>(null);
@@ -51,8 +55,14 @@ export const TumblingETest = ({ onComplete }: TumblingETestProps): JSX.Element =
                 correctQuestions,
             };
 
+            const backend_result = {
+                total_questions,
+                correct_answers,
+            };
+
+
             // Refresh token
-            const authResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/tokenn`, {
+            const authResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}api/v1/auth/tokenn`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -71,13 +81,13 @@ export const TumblingETest = ({ onComplete }: TumblingETestProps): JSX.Element =
             localStorage.setItem("refresh_token", refresh_token);
 
             // Send result to Tumbling E endpoint
-            await fetch(`${import.meta.env.VITE_INFURA_ID}/api/v1/test/tumbling-e-test`, {
+            await fetch(`${import.meta.env.VITE_API_BASE_URL}api/v1/test/tumbling-e-test`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${usertoken}`,
                 },
-                body: JSON.stringify(user_result),
+                body: JSON.stringify(backend_result),
                 credentials: "include",
             });
 
