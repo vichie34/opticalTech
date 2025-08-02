@@ -105,7 +105,7 @@ export const ContrastSensitivityTest = ({ onComplete }: ContrastSensitivityTestP
             localStorage.setItem("refresh_token", refresh_token);
 
             // Update with correct endpoint for Contrast Sensitivity test
-            await fetch(`${import.meta.env.VITE_INFURA_ID}/api/v1/test/contrast-sensitivity-test`, {
+            await fetch(`${import.meta.env.VITE_INFURA_ID}api/v1/test/contrast-sensitivity-test`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
