@@ -21,6 +21,7 @@ export const LeaSymbolsTest = ({ onComplete }: LeaSymbolsTestProps): JSX.Element
     const [isMobileOrTablet, setIsMobileOrTablet] = useState(true);
     const [animationSpeed, setAnimationSpeed] = useState(1);
 
+    //@ts-ignore
     const [mistakes] = useState<string[]>([]);
     const [totalQuestions] = useState(0);
     const [correctQuestions] = useState(0);
@@ -76,6 +77,7 @@ export const LeaSymbolsTest = ({ onComplete }: LeaSymbolsTestProps): JSX.Element
     const sendTestResult = async (_result: { score: number; distance: number }) => {
         try {
             // Score based on correct/total questions
+            //@ts-ignore
             const score =
                 totalQuestions > 0
                     ? Math.round((correctQuestions / totalQuestions) * 100)

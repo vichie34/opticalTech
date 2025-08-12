@@ -214,6 +214,7 @@ export const ColorBlindnessTest = ({ }: ColorBlindnessTestProps): JSX.Element =>
 
     const sendTestResult = async (_result: { score: number; distance: number; mistakes: string[]; }) => {
         try {
+            //@ts-ignore
             const user_result = {
                 normal_acuity: 40,
                 user_acuity: Math.floor((time / maxTestDuration) * 100),

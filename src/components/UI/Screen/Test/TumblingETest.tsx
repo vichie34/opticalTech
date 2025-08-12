@@ -46,6 +46,7 @@ export const TumblingETest = ({ onComplete }: TumblingETestProps): JSX.Element =
                     ? Math.round((correctQuestions / totalQuestions) * 100)
                     : 0;
 
+            //@ts-ignore
             const user_result = {
                 normal_acuity: 40,
                 user_acuity: score,

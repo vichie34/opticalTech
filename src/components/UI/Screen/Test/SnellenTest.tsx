@@ -227,7 +227,7 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
             };
 
             // Refresh token
-            const authResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/tokenn`, {
+            const authResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}api/v1/auth/tokenn`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
