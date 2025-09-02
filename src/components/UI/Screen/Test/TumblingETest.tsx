@@ -23,9 +23,9 @@ export const TumblingETest = ({ onComplete }: TumblingETestProps): JSX.Element =
 
     const maxTestDuration = 24;
     const distance = 40; // cm
-    const [mistakes] = useState<string[]>([]);
-    const [totalQuestions] = useState(0);
-    const [correctQuestions] = useState(0);
+    const [mistakes, setMistakes] = useState<string[]>([]);
+    const [totalQuestions, setTotalQuestions] = useState(0);
+    const [correctQuestions, setCorrectQuestions] = useState(0);
 
 
     const [total_questions] = useState(0);
@@ -41,24 +41,13 @@ export const TumblingETest = ({ onComplete }: TumblingETestProps): JSX.Element =
     // API: Send test result to backend
     const sendTestResult = async (_result: { score: number; distance: number }) => {
         try {
-            const score =
-                totalQuestions > 0
-                    ? Math.round((correctQuestions / totalQuestions) * 100)
-                    : 0;
-
-            //@ts-ignore
-            const user_result = {
-                normal_acuity: 40,
-                user_acuity: score,
-                distance: distance,
-                mistakes,
-                totalQuestions,
-                correctQuestions,
-            };
+            const score = totalQuestions > 0 ? Math.round((correctQuestions / totalQuestions) * 100) : 0;
 
             const backend_result = {
-                total_questions,
-                correct_answers,
+                total_questions: totalQuestions,
+                correct_answers: correctQuestions,
+                mistakes,
+                distance,
             };
 
 
@@ -237,7 +226,7 @@ export const TumblingETest = ({ onComplete }: TumblingETestProps): JSX.Element =
         return answer.toUpperCase();
     };
 
-    // Speech recognition logic for Tumbling E test
+    // Speech recognition logic
     useEffect(() => {
         if (!isListening) return;
         // @ts-ignore
@@ -250,8 +239,11 @@ export const TumblingETest = ({ onComplete }: TumblingETestProps): JSX.Element =
         recognition.onresult = (event: any) => {
             const transcript = event.results[event.results.length - 1][0].transcript;
             const normalized = normalizeAnswer(transcript);
-            if (normalized !== currentSymbol) {
-                // Mistake detected, but not tracked
+            setTotalQuestions((prev) => prev + 1);
+            if (normalized === currentSymbol) {
+                setCorrectQuestions((prev) => prev + 1);
+            } else {
+                setMistakes((prev) => [...prev, transcript]);
             }
         };
         recognition.onerror = () => { };

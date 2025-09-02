@@ -19,7 +19,7 @@ interface SnellenTestProps {
     onComplete: (result: { score: number; distance: number; mistakes: string[] }) => void;
 }
 
-export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
+export const SnellenTest = ({ onComplete }: SnellenTestProps): JSX.Element => {
     const [time, setTime] = useState(0);
     const [isTracking, setIsTracking] = useState(false);
     const [currentSymbol, setCurrentSymbol] = useState("A");
@@ -31,6 +31,8 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
     const [isMobileOrTablet, setIsMobileOrTablet] = useState(true);
     const [animationSpeed, setAnimationSpeed] = useState(1);
     const [mistakes, setMistakes] = useState<string[]>([]);
+    const [totalQuestions, setTotalQuestions] = useState(0);
+    const [correctQuestions, setCorrectQuestions] = useState(0);
 
     const maxTestDuration = 24;
     const distance = 40;
@@ -217,13 +219,55 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transcript, currentSymbol, isTracking]);
 
-    const sendTestResult = async (_result: { score: number; distance: number; mistakes: string[]; }) => {
+    // Helper to normalize user speech for comparison
+    const normalizeAnswer = (answer: string) => {
+        answer = answer.trim().toUpperCase();
+        // Handle common speech recognition mistakes for letters
+        const letterMap: { [key: string]: string } = {
+            "AY": "A", "BEE": "B", "SEE": "C", "DEE": "D",
+            "EE": "E", "EF": "F", "GEE": "G", "AITCH": "H",
+            "EYE": "I", "JAY": "J", "KAY": "K", "EL": "L",
+            "EM": "M", "EN": "N", "OH": "O", "PEE": "P"
+        };
+        return letterMap[answer] || answer;
+    };
+
+    // Speech recognition logic
+    useEffect(() => {
+        if (!isListening) return;
+        // @ts-ignore
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return;
+        const recognition = new SpeechRecognition();
+        recognition.lang = "en-US";
+        recognition.continuous = true;
+        recognition.interimResults = false;
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[event.results.length - 1][0].transcript;
+            const normalized = normalizeAnswer(transcript);
+            setTotalQuestions((prev) => prev + 1);
+            if (normalized === currentSymbol) {
+                setCorrectQuestions((prev) => prev + 1);
+            } else {
+                setMistakes((prev) => [...prev, transcript]);
+            }
+        };
+        recognition.onerror = () => { };
+        recognition.onend = () => { if (isListening) recognition.start(); };
+        recognition.start();
+        return () => { recognition.stop(); };
+    }, [isListening, currentSymbol]);
+
+    const sendTestResult = async (_result: { score: number; distance: number }) => {
         try {
-            const user_result = {
-                normal_acuity: 40,
-                user_acuity: Math.floor((time / maxTestDuration) * 100),
-                distance: distance,
-                mistakes: mistakes,
+            const score = totalQuestions > 0 ? Math.round((correctQuestions / totalQuestions) * 100) : 0;
+
+            const backend_result = {
+                total_questions: totalQuestions,
+                correct_answers: correctQuestions,
+                mistakes,
+                distance,
+                fontSize // Include font size for visual acuity calculation
             };
 
             // Refresh token
@@ -251,7 +295,7 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${usertoken}`,
                 },
-                body: JSON.stringify(user_result),
+                body: JSON.stringify(backend_result),
                 credentials: "include",
             });
 

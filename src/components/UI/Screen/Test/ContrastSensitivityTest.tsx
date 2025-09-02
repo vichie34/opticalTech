@@ -214,9 +214,23 @@ export const ContrastSensitivityTest = ({ onComplete }: ContrastSensitivityTestP
     }, [isPermissionModalOpen]);
 
     // Helper to normalize user speech for comparison
-    const normalizeAnswer = (answer: string) => answer.trim().toUpperCase();
+    const normalizeAnswer = (answer: string) => {
+        answer = answer.trim().toUpperCase();
+        const letters = ["A", "B", "C", "D", "E", "F", "G", "H"];
+        if (letters.includes(answer)) return answer;
+        // Handle common speech recognition mistakes
+        if (answer === "AY") return "A";
+        if (answer === "BEE") return "B";
+        if (answer === "SEE") return "C";
+        if (answer === "DEE") return "D";
+        if (answer === "EE") return "E";
+        if (answer === "EF") return "F";
+        if (answer === "GEE") return "G";
+        if (answer === "AITCH") return "H";
+        return answer;
+    };
 
-    // Speech recognition logic for Contrast Sensitivity test
+    // Speech recognition logic
     useEffect(() => {
         if (!isListening) return;
         // @ts-ignore
