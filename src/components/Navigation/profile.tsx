@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { Menu, Settings, ChevronRight, Copy, LogOut } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "../UI/ux/avatar"
@@ -8,12 +8,28 @@ import { Button } from "../UI/ux/button"
 import { Card, CardContent } from "../UI/ux/card"
 import { NavFrame } from "../UI/Dashboard/Sections/Frame/NavFrame"
 
-
-
 export default function Profile() {
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [user, setUser] = useState<{ name?: string; uid?: string }>({});
     const toggleMenu = () => setIsMenuOpen((prev) => !prev);
+
+    useEffect(() => {
+        async function fetchUser() {
+            try {
+                const res = await fetch(`${import.meta.env.VITE_INFURA_ID}api/v1/dashboard/me`, {
+                    credentials: "include"
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setUser({ name: data.name, uid: data.uid });
+                }
+            } catch (error) {
+                // Handle error (optional)
+            }
+        }
+        fetchUser();
+    }, []);
 
     return (
         <div className="min-h-screen bg-[#f9f9f9] max-w-sm mx-auto">
@@ -30,7 +46,6 @@ export default function Profile() {
                 </div>
             </header>
 
-
             <div className={`fixed top-0 left-0 h-full w-[245px] bg-[#f4f5f7] shadow-lg transform transition-transform duration-300 ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
                 <NavFrame />
             </div>
@@ -40,12 +55,16 @@ export default function Profile() {
                 <div className="flex items-center gap-3">
                     <Avatar className="h-16 w-16">
                         <AvatarImage src="/placeholder.svg?height=64&width=64" alt="Profile" />
-                        <AvatarFallback className="bg-[#c73538] text-white text-lg">O</AvatarFallback>
+                        <AvatarFallback className="bg-[#c73538] text-white text-lg">
+                            {user.name ? user.name[0] : "O"}
+                        </AvatarFallback>
                     </Avatar>
                     <div>
-                        <h2 className="text-xl font-semibold text-[#1d1d1d]">Hello, Ogechukwu</h2>
+                        <h2 className="text-xl font-semibold text-[#1d1d1d]">
+                            Hello, {user.name ? user.name : "User"}
+                        </h2>
                         <div className="flex items-center gap-2 text-[#637587]">
-                            <span className="text-sm">UID:001234567890</span>
+                            <span className="text-sm">UID:{user.uid ? user.uid : "N/A"}</span>
                             <Button variant="ghost" size="icon" className="h-4 w-4 p-0">
                                 <Copy className="h-3 w-3" />
                             </Button>
