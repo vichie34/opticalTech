@@ -7,6 +7,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "../UI/ux/avatar"
 import { Button } from "../UI/ux/button"
 import { Card, CardContent } from "../UI/ux/card"
 import { NavFrame } from "../UI/Dashboard/Sections/Frame/NavFrame"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../UI/ux/alert-dialog"
+import { toast } from "sonner"
 
 export default function Profile() {
     const navigate = useNavigate();
@@ -17,7 +19,7 @@ export default function Profile() {
     useEffect(() => {
         async function fetchUser() {
             try {
-                const res = await fetch(`${import.meta.env.VITE_INFURA_ID}api/v1/dashboard/me`, {
+                const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}api/v1/dashboard/me`, {
                     credentials: "include"
                 });
                 if (res.ok) {
@@ -30,6 +32,25 @@ export default function Profile() {
         }
         fetchUser();
     }, []);
+
+    const handleDeleteAccount = async () => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}api/v1/users/delete`, {
+                method: "DELETE",
+                credentials: "include",
+            });
+
+            if (response.ok) {
+                toast.success("Account deleted successfully");
+                navigate("/login");
+            } else {
+                const error = await response.json();
+                toast.error(error.message || "Failed to delete account");
+            }
+        } catch (error) {
+            toast.error("An error occurred while deleting account");
+        }
+    };
 
     return (
         <div className="min-h-screen bg-[#f9f9f9] max-w-sm mx-auto">
@@ -127,9 +148,40 @@ export default function Profile() {
 
                 {/* Delete Account */}
                 <div className="pt-6">
-                    <Button variant="ghost" className="text-[#c73538] text-base p-0 h-auto">
-                        Delete Account
-                    </Button>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="ghost" className="text-[#c73538] text-base p-0 h-auto">
+                                Delete Account
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-white max-w-[320px] rounded-xl">
+                            <div className="flex justify-center mb-4">
+                                <div className="font-bold text-blue-600 text-xl font-['Merriweather_Sans',Helvetica]">
+                                    OptiCheck
+                                </div>
+                            </div>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle className="text-[#1d1d1d] text-xl font-semibold text-center">
+                                    Delete Account?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription className="text-[#637587] text-center">
+                                    This action cannot be undone. This will permanently delete your
+                                    account and remove all your data.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter className="flex flex-col gap-2 mt-6">
+                                <AlertDialogAction
+                                    onClick={handleDeleteAccount}
+                                    className="w-full h-14 rounded-full bg-[#c73538] hover:bg-[#b32d30] text-white text-base font-medium"
+                                >
+                                    Delete Account
+                                </AlertDialogAction>
+                                <AlertDialogCancel className="w-full h-14 rounded-full border-2 border-[#2563eb] bg-white text-[#2563eb] text-base font-medium hover:bg-blue-50">
+                                    Cancel
+                                </AlertDialogCancel>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </div>
             </div>
         </div>

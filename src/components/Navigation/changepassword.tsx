@@ -34,8 +34,8 @@ export default function ChangePassword() {
 
         setLoading(true);
         try {
-            const response = await fetch(`${import.meta.env.VITE_INFURA_ID}api/v1/users/me/password`, {
-                method: "PATCH",
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}api/v1/auth/change-password`, {
+                method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },

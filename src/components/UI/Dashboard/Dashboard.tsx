@@ -169,21 +169,46 @@ export const Dashboard = (): JSX.Element => {
                     </div>
                 </header>
 
-                <div className={`fixed top-0 left-0 h-full w-[245px] bg-[#f4f5f7] shadow-lg transform transition-transform duration-300 ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
-                    <NavFrame />
+                {/* <div className={`fixed top-0 left-0 h-full w-[245px] bg-[#f4f5f7] shadow-lg transform transition-transform duration-300 ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
+                     
+                    <NavFrame
+                        user={{
+                            name: userData?.user?.first_name || "Guest User",
+                            avatarUrl: userData?.avatar || "",
+                            lastTestDate: userData?.eye_test_data?.tested_at
+                                ? new Date(userData.eye_test_data.tested_at).toLocaleDateString()
+                                : "Never",
+                        }}
+                    />
+
+                </div> */}
+                <div
+                    className={`fixed top-0 left-0 h-full w-[245px] bg-[#f4f5f7] shadow-lg transform transition-transform duration-300 ${isMenuOpen ? "translate-x-0" : "-translate-x-full"
+                        }`}
+                >
+                    <NavFrame
+                        user={{
+                            name: userData?.user?.first_name || "Unknown User",
+                            avatarUrl: userData?.avatar || "",
+                            lastTestDate: userData?.eye_test_data?.tested_at
+                                ? new Date(userData.eye_test_data.tested_at).toLocaleDateString()
+                                : "Never",
+                        }}
+                    />
                 </div>
+
 
                 <main className="flex-1">
                     <div className="p-4">
                         <h1 className="text-xl font-bold">Welcome, {userData?.profile?.name || "User"}!</h1>
                         <p>
-                        Your last test was on{" "}
-                        {userData?.eye_test_data?.tested_at
-                            ? new Date(userData.eye_test_data.tested_at).toLocaleString("en-US", {
-                                dateStyle: "medium",
-                                timeStyle: "short",
-                            })
-                            : "N/A"}
+                            Your last test was on{" "}
+                            {userData?.eye_test_data?.tested_at
+                                ? new Date(userData.eye_test_data.tested_at).toLocaleString("en-US", {
+                                    dateStyle: "medium",
+                                    timeStyle: "short",
+                                })
+                                : "N/A"}
                         </p>
                         {error && (
                             <div className="mt-4">
@@ -211,13 +236,13 @@ export const Dashboard = (): JSX.Element => {
         );
     }
 
-    
+
 
     const testedAt = userData?.eye_test_data?.tested_at;
 
     const nextTestCountdown = testedAt
-    ? `${dayjs().to(dayjs(testedAt).add(5, "day"))}`
-    : "N/A";
+        ? `${dayjs().to(dayjs(testedAt).add(5, "day"))}`
+        : "N/A";
 
     const statsData = [
         { label: "Vision Score", value: userData?.eye_test_data?.visual_acuity || "N/A" },
@@ -253,26 +278,27 @@ export const Dashboard = (): JSX.Element => {
                 <div className="p-4">
                     <h1 className="text-xl font-bold">Welcome, {userData?.user?.first_name || "User"}!</h1>
                     <p>
-                    Your last test was on{" "}
-                    {userData?.eye_test_data?.tested_at
-                        ? new Date(userData.eye_test_data.tested_at).toLocaleString("en-US", {
-                            dateStyle: "medium",
-                            timeStyle: "short",
-                        })
-                        : "N/A"}
+                        Your last test was on{" "}
+                        {userData?.eye_test_data?.tested_at
+                            ? new Date(userData.eye_test_data.tested_at).toLocaleString("en-US", {
+                                dateStyle: "medium",
+                                timeStyle: "short",
+                            })
+                            : "N/A"}
                     </p>
                 </div>
 
                 <FrameWrapper
-                    userData={userData?.user ? { name: userData.user.first_name || 'Unknown', lastTest: userData.eye_test_data?.tested_at 
-                        ? new Date(userData.eye_test_data.tested_at).toLocaleString("en-US", {
-                                        dateStyle: "medium",
-                                        timeStyle: "short",
-                                    })
-                                    : "Never",
-                                }
-                            : { name: "N/A", lastTest: "N/A" }
-                        }
+                    userData={userData?.user ? {
+                        name: userData.user.first_name || 'Unknown', lastTest: userData.eye_test_data?.tested_at
+                            ? new Date(userData.eye_test_data.tested_at).toLocaleString("en-US", {
+                                dateStyle: "medium",
+                                timeStyle: "short",
+                            })
+                            : "Never",
+                    }
+                        : { name: "N/A", lastTest: "N/A" }
+                    }
                     statsData={statsData}
                 />
                 <Frame />
