@@ -19,12 +19,31 @@ export default function Profile() {
     useEffect(() => {
         async function fetchUser() {
             try {
+
+                const access_token = localStorage.getItem("access_token");
+                const refresh_token = localStorage.getItem("refresh_token");
+    
+                if (!access_token && !refresh_token) {
+                    throw new Error("No valid session found. Please log in again.");
+                }
                 const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}api/v1/dashboard/me`, {
-                    credentials: "include"
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({ refresh_token }),
                 });
+                const result = await res.json(); 
+                //console.log("response:", result);
+
                 if (res.ok) {
-                    const data = await res.json();
-                    setUser({ name: data.name, uid: data.uid });
+                    const user = result.data.user;
+                    //console.log("username:", user.first_name);
+                    setUser({
+                        name: `${user.first_name}`,
+                        uid: user.id,});
                 }
             } catch (error) {
                 // Handle error (optional)
@@ -85,7 +104,7 @@ export default function Profile() {
                             Hello, {user.name ? user.name : "User"}
                         </h2>
                         <div className="flex items-center gap-2 text-[#637587]">
-                            <span className="text-sm">UID:{user.uid ? user.uid : "N/A"}</span>
+                            <span className="text-sm">UID:{user.uid ? `${user.uid.slice(0, 5)}...` : "N/A"}</span>
                             <Button variant="ghost" size="icon" className="h-4 w-4 p-0">
                                 <Copy className="h-3 w-3" />
                             </Button>
