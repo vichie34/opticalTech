@@ -19,7 +19,7 @@ interface SnellenTestProps {
     onComplete: (result: { score: number; distance: number; mistakes: string[] }) => void;
 }
 
-export const SnellenTest = ({ onComplete }: SnellenTestProps): JSX.Element => {
+export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
     const [time, setTime] = useState(0);
     const [isTracking, setIsTracking] = useState(false);
     const [currentSymbol, setCurrentSymbol] = useState("A");
@@ -263,11 +263,9 @@ export const SnellenTest = ({ onComplete }: SnellenTestProps): JSX.Element => {
             const score = totalQuestions > 0 ? Math.round((correctQuestions / totalQuestions) * 100) : 0;
 
             const backend_result = {
-                total_questions: totalQuestions,
-                correct_answers: correctQuestions,
-                mistakes,
-                distance,
-                fontSize // Include font size for visual acuity calculation
+                "normal_acuity": 40,
+                "user_acuity": score,
+                "distance": distance
             };
 
             // Refresh token
