@@ -1,8 +1,18 @@
+import { useEffect, useState } from "react";
 import { Badge } from "../../../../../components/UI/ux/badge";
 import { Button } from "../../../../../components/UI/ux/button";
 import { Card, CardContent } from "../../../../../components/UI/ux/card";
 import { JSX } from "react";
 import { Link } from "react-router-dom";
+
+
+type TestResult = {
+    id: number;
+    name: string;
+    date: string;
+    result: string;
+};
+
 
 // Define test card data for mapping
 const testCards = [
@@ -39,7 +49,7 @@ const testCards = [
 ];
 
 // Define recent tests data
-const recentTests = [
+/* const recentTests = [
     {
         id: 1,
         name: "Full vision test",
@@ -58,7 +68,7 @@ const recentTests = [
         date: "April 12, 2025",
         result: "20/25",
     },
-];
+]; */
 
 // Define helpful information data
 const helpfulInfo = [
@@ -75,6 +85,50 @@ const helpfulInfo = [
 ];
 
 export const Frame = (): JSX.Element => {
+    const [recentTests, setRecentTests] = useState<TestResult[]>([]);
+
+    useEffect(() => {
+        const fetchRecentTests = async () => {
+            try {
+                const access_token = localStorage.getItem("access_token");
+                const refresh_token = localStorage.getItem("refresh_token");
+
+                const res = await fetch(
+                    `${import.meta.env.VITE_API_BASE_URL}api/v1/test/my-tests`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${access_token}`,
+                        },
+                        body: JSON.stringify({ refresh_token }),
+                    }
+                );
+
+                if (!res.ok) throw new Error("Failed to fetch");
+
+                const data = await res.json();
+                if (!Array.isArray(data.data)) return;
+
+                // format and take only 3 most recent
+                const formatted = data.data
+                    .slice(0, 3) // take only first 3
+                    .map((item: any, idx: number) => ({
+                        id: idx,
+                        name: item.test_type || "Vision Test",
+                        date: new Date(item.tested_at).toLocaleDateString(),
+                        result: item.result?.toString() || "-",
+                    }));
+
+                setRecentTests(formatted);
+            } catch (err) {
+                console.error("Error fetching recent tests:", err);
+            }
+        };
+
+        fetchRecentTests();
+    }, []);
+
     return (
         <div className="flex flex-col w-full items-center gap-9">
             {/* Quick Actions Section */}
