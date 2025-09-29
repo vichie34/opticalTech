@@ -468,7 +468,7 @@ interface SnellenTestProps {
     onComplete: (result: { score: number; distance: number; mistakes: string[] }) => void;
 }
 
-export const SnellenTest = ({ onComplete }: SnellenTestProps): JSX.Element => {
+export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
     const [time, setTime] = useState(0);
     const [isTracking, setIsTracking] = useState(false);
     const [currentSymbol, setCurrentSymbol] = useState("A");

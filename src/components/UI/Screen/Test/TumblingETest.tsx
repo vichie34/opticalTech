@@ -28,9 +28,9 @@ export const TumblingETest = ({ onComplete }: TumblingETestProps): JSX.Element =
     const [correctQuestions, setCorrectQuestions] = useState(0);
 
 
-    const [total_questions] = useState(0);
+    /* const [total_questions] = useState(0);
     const [correct_answers] = useState(0);
-
+ */
     const audioContextRef = useRef<AudioContext | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
     const dataArrayRef = useRef<Uint8Array | null>(null);
@@ -41,7 +41,7 @@ export const TumblingETest = ({ onComplete }: TumblingETestProps): JSX.Element =
     // API: Send test result to backend
     const sendTestResult = async (_result: { score: number; distance: number }) => {
         try {
-            const score = totalQuestions > 0 ? Math.round((correctQuestions / totalQuestions) * 100) : 0;
+            //const score = totalQuestions > 0 ? Math.round((correctQuestions / totalQuestions) * 100) : 0;
 
             const backend_result = {
                 total_questions: totalQuestions,
