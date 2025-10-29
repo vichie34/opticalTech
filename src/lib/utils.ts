@@ -12,8 +12,9 @@ const api = axios.create({
     headers: {
         'Content-Type': 'application/json',
         // 'accept: application/json': '*/*',
-        'Access-Control-Allow-Origin': '*',
+        //'Access-Control-Allow-Origin': '*',
     },
+    //withCredentials: true,
 });
 
 const walletURL = import.meta.env.VITE_INFURA_ID;

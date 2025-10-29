@@ -70,7 +70,7 @@ export const Dashboard = (): JSX.Element => {
             const response = await api.post("/api/v1/dashboard/me", { refresh_token }, {
                 headers: {
                     Authorization: `Bearer ${access_token}`,
-                    credentials: "include"
+                    
                 }
             },
             );

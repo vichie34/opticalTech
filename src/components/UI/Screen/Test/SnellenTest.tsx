@@ -15,6 +15,71 @@ declare global {
     }
 }
 
+/**
+ * Helper: converts AudioBuffer -> WAV ArrayBuffer
+ * (keeps everything client-side so we can upload .wav)
+ */
+function audioBufferToWav(buffer: AudioBuffer): ArrayBuffer {
+    const numOfChan = buffer.numberOfChannels;
+    const length = buffer.length * numOfChan * 2 + 44;
+    const out = new ArrayBuffer(length);
+    const view = new DataView(out);
+    const channels: Float32Array[] = [];
+    let pos = 0;
+
+    function setUint16(data: number) { view.setUint16(pos, data, true); pos += 2; }
+    function setUint32(data: number) { view.setUint32(pos, data, true); pos += 4; }
+
+    // RIFF chunk descriptor
+    setUint32(0x46464952); // "RIFF"
+    setUint32(length - 8);
+    setUint32(0x45564157); // "WAVE"
+
+    // fmt subchunk
+    setUint32(0x20746d66); // "fmt "
+    setUint32(16); // subchunk1Size (16 for PCM)
+    setUint16(1); // audioFormat (1 = PCM)
+    setUint16(numOfChan);
+    setUint32(buffer.sampleRate);
+    setUint32(buffer.sampleRate * 2 * numOfChan);
+    setUint16(numOfChan * 2);
+    setUint16(16); // bitsPerSample
+
+    // data subchunk
+    setUint32(0x61746164); // "data"
+    setUint32(length - pos - 4);
+
+    for (let i = 0; i < numOfChan; i++) channels.push(buffer.getChannelData(i));
+
+    // write interleaved PCM samples
+    const sampleCount = buffer.length;
+    for (let i = 0; i < sampleCount; i++) {
+        for (let ch = 0; ch < numOfChan; ch++) {
+            const sample = Math.max(-1, Math.min(1, channels[ch][i]));
+            // 16-bit PCM
+            view.setInt16(pos, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+            pos += 2;
+        }
+    }
+
+    return out;
+}
+
+/**
+ * Convert a Blob (webm/opus) to a WAV Blob using AudioContext decode
+ */
+async function convertToWav(audioBlob: Blob): Promise<Blob> {
+    const arrayBuffer = await audioBlob.arrayBuffer();
+    // create AudioContext dynamically
+    const AudioCtx = (window.AudioContext || (window as any).webkitAudioContext);
+    const audioCtx = new AudioCtx();
+    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    const wavBuffer = audioBufferToWav(audioBuffer);
+    // close context to free resources where supported
+    try { audioCtx.close(); } catch { /* ignore */ }
+    return new Blob([new DataView(wavBuffer)], { type: "audio/wav" });
+}
+
 interface SnellenTestProps {
     onComplete: (result: { score: number; distance: number; mistakes: string[] }) => void;
 }
@@ -34,15 +99,25 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
     const [totalQuestions, setTotalQuestions] = useState(0);
     const [correctQuestions, setCorrectQuestions] = useState(0);
 
+    // New: collects all shown letters for backend
+    const [expectedText, setExpectedText] = useState<string>(currentSymbol);
+
     const maxTestDuration = 24;
     const distance = 40;
 
+    // Audio / recording refs (must be inside component)
     const audioContextRef = useRef<AudioContext | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
     const dataArrayRef = useRef<Uint8Array | null>(null);
     const mediaStreamRef = useRef<MediaStream | null>(null);
+
+    // For recording & chunks
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioChunksRef = useRef<Blob[]>([]);
+
     const navigate = useNavigate();
 
+    const [userResult, setUserResult] = useState<any>(null);
     // Define the test order and current index for navigation
     const testOrder = [
         "/test/colorblindness",
@@ -85,6 +160,7 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
 
     const handleCancelPermission = () => setIsPermissionModalOpen(false);
 
+    // generateRandomSymbol now appends to expectedText (accumulates)
     const generateRandomSymbol = () => {
         const snellenLetters = ["A", "B", "C", "D", "E", "F", "G", "H"];
         let newSymbol;
@@ -92,9 +168,163 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
             newSymbol = snellenLetters[Math.floor(Math.random() * snellenLetters.length)];
         } while (newSymbol === currentSymbol);
         setCurrentSymbol(newSymbol);
+        // append the shown letter to expectedText
+        setExpectedText((prev) => prev + newSymbol);
         setFontSize((prevSize) => Math.max(prevSize - 2, 5));
         resetTranscript();
     };
+
+    // Start a continuous recording for the whole test session
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaStreamRef.current = stream;
+            audioChunksRef.current = [];
+
+            // Prefer a mimeType that's supported
+            const options: MediaRecorderOptions = {};
+            // some browsers accept "audio/webm" or "audio/webm;codecs=opus"
+            if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+                options.mimeType = "audio/webm;codecs=opus";
+            } else if (MediaRecorder.isTypeSupported("audio/webm")) {
+                options.mimeType = "audio/webm";
+            } else if (MediaRecorder.isTypeSupported("audio/ogg")) {
+                options.mimeType = "audio/ogg";
+            }
+
+            const mediaRecorder = new MediaRecorder(stream, options);
+            mediaRecorderRef.current = mediaRecorder;
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data && event.data.size > 0) {
+                    audioChunksRef.current.push(event.data);
+                }
+            };
+
+            mediaRecorder.start();
+            console.log("🎙️ Continuous recording started");
+        } catch (err) {
+            console.error("Failed to start recording:", err);
+            toast.error("Unable to access microphone for recording.");
+        }
+    };
+
+    // Stop recording, convert to WAV, upload once
+    const stopRecordingAndUploadOnce = async () => {
+        if (!mediaRecorderRef.current) return;
+
+        return new Promise<void>((resolve) => {
+            const recorder = mediaRecorderRef.current!;
+            recorder.onstop = async () => {
+                try {
+                    // assemble blob (might be webm/ogg etc)
+                    const recordedBlob = new Blob(audioChunksRef.current, { type: audioChunksRef.current[0]?.type || "audio/webm" });
+                    // convert to wav
+                    const wavBlob = await convertToWav(recordedBlob);
+
+                    // upload
+                    await uploadAudioToBackend(wavBlob, expectedText);
+
+                    // cleanup
+                    audioChunksRef.current = [];
+                    if (mediaStreamRef.current) {
+                        mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+                        mediaStreamRef.current = null;
+                    }
+                    mediaRecorderRef.current = null;
+                    console.log("✅ Recording stopped, converted, and uploaded.");
+                } catch (err) {
+                    console.error("Error processing/uploading audio:", err);
+                    toast.error("Failed to process or upload audio.");
+                } finally {
+                    resolve();
+                }
+            };
+
+            // stop the recorder
+            try {
+                if (recorder.state !== "inactive") recorder.stop();
+            } catch (e) {
+                console.warn("recorder.stop() threw:", e);
+                resolve();
+            }
+        });
+    };
+
+    const uploadAudioToBackend = async (audioBlob: Blob, expected: string) => {
+        try {
+            const formData = new FormData();
+            formData.append("expected_text", expected);
+            formData.append("audio_file", audioBlob, "recording.wav");
+
+            console.log("🔄 I am trying to get refresh tokens");
+            // Refresh token
+            const authResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}api/v1/auth/tokenn`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include", 
+                body: JSON.stringify({
+                    refresh_token: localStorage.getItem("refresh_token")
+                }),
+                }
+            );
+            const auth = await authResponse.json();
+            const usertoken = auth.access_token;
+            const refresh_token = auth.refresh_token; 
+
+            localStorage.setItem("access_token", usertoken);
+            localStorage.setItem("refresh_token", refresh_token); 
+            /* const usertoken = localStorage.getItem("access_token") || ""; */
+            console.log("🔄 Tokens refreshed for upload", usertoken);
+            console.log("i am going", auth);
+            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}api/v1/test/analyze-snellen/`, {
+                method: "POST",
+                headers: {
+                    /* "Content-Type": "application/json", */
+                    Authorization: `Bearer ${usertoken}`,
+                },
+                body: formData,
+                credentials: "include",
+            });
+
+            const newresults = await res.json();
+            console.log("Audio Results:", newresults)
+
+            if (!res.ok) {
+                const text = await res.text().catch(() => "");
+                throw new Error(`Upload failed: ${res.status} ${res.statusText} ${text}`);
+            }
+
+            const data = await res.json().catch(() => null);
+            console.log("Server response for audio upload:", data);
+            toast.success("Audio sent for analysis");
+        } catch (err) {
+            console.error("Upload error:", err);
+            toast.error("Audio upload failed");
+        }
+    };
+
+    // when isTracking toggles: start continuous recording; when stops -> stop+upload
+    useEffect(() => {
+        let mounted = true;
+        (async () => {
+            if (isTracking) {
+                // reset expectedText to start fresh for this session
+                setExpectedText(currentSymbol); // include initial displayed symbol
+                await startRecording();
+            } else {
+                // if recording active, stop and upload once
+                if (mediaRecorderRef.current) {
+                    await stopRecordingAndUploadOnce();
+                }
+            }
+        })();
+
+        return () => { mounted = false; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isTracking]); // run when tracking starts/stops
 
     useEffect(() => {
         let timer: NodeJS.Timeout | null = null;
@@ -105,8 +335,9 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
                     if (newTime >= maxTestDuration) {
                         setIsTracking(false);
                         setShowNotification(true);
-                        clearInterval(timer!);
+                        if (timer) clearInterval(timer);
                         const result = { score: Math.floor((newTime / maxTestDuration) * 100), distance, mistakes };
+                        // send summary result (your existing endpoint)
                         sendTestResult(result);
                         return maxTestDuration;
                     }
@@ -119,6 +350,7 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
             }, 1000);
         }
         return () => { if (timer) clearInterval(timer); };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isTracking]);
 
     const toggleTracking = () => setIsTracking((prev) => !prev);
@@ -168,7 +400,7 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
                 mediaStreamRef.current = null;
             }
             if (audioContextRef.current) {
-                audioContextRef.current.close();
+                try { audioContextRef.current.close(); } catch { /* ignore */ }
                 audioContextRef.current = null;
             }
             cancelAnimationFrame(rafId);
@@ -180,7 +412,7 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
                 mediaStreamRef.current = null;
             }
             if (audioContextRef.current) {
-                audioContextRef.current.close();
+                try { audioContextRef.current.close(); } catch { /* ignore */ }
                 audioContextRef.current = null;
             }
             cancelAnimationFrame(rafId);
@@ -191,7 +423,7 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
         if (!isPermissionModalOpen && time === 0 && !isTracking) setIsTracking(true);
     }, [isPermissionModalOpen]);
 
-    // ✅ Unified Speech Recognition logic
+    // ✅ Unified Speech Recognition logic (keeps existing behavior; not used for upload)
     useEffect(() => {
         if (!isTracking || !transcript) return;
 
@@ -254,7 +486,7 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
             localStorage.setItem("access_token", usertoken);
             localStorage.setItem("refresh_token", refresh_token);
 
-            await fetch(`${import.meta.env.VITE_API_BASE_URL}api/v1/test/snellen-test`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}api/v1/test/snellen-test`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -263,6 +495,9 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
                 body: JSON.stringify(backend_result),
                 credentials: "include",
             });
+            const savedResult = await response.json();
+            console.log("User Results:", savedResult)
+            setUserResult(savedResult.data);
 
             toast.success("Test result submitted successfully");
         } catch (err) {
@@ -304,8 +539,9 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
                                     setShowNotification(false);
                                     navigate("/TestResult", {
                                         state: {
-                                            testScore: Math.floor((time / maxTestDuration) * 100),
-                                            completedAt: new Date().toISOString(),
+                                            testScore: userResult?.user_acuity,
+                                            completedAt: new Date(userResult?.tested_at).toISOString(),
+                                            // add any other result data you want to show
                                         }
                                     });
                                 }}
@@ -366,6 +602,8 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
                     <p className="font-normal text-[#637587] text-xs mt-[62px] font-['Outfit',Helvetica] leading-[21px]">
                         Keep Device at arm&apos;s length (about {distance}cm)
                     </p>
+                    {/* show the expectedText string on screen so user/dev can see the sequence */}
+                    <p className="text-xs text-gray-500 mt-2">Letters shown: {expectedText}</p>
                 </div>
                 <Card className="mx-4 mt-[79px] bg-[#eef4fc] border-none">
                     <CardContent className="flex items-center justify-between p-4">
