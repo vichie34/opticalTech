@@ -56,6 +56,7 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
     const {
         transcript,
         resetTranscript,
+        // @ts-ignore
         browserSupportsSpeechRecognition,
     } = useSpeechRecognition();
 
