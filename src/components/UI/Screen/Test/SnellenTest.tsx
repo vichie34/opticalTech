@@ -264,18 +264,18 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                credentials: "include", 
+                credentials: "include",
                 body: JSON.stringify({
                     refresh_token: localStorage.getItem("refresh_token")
                 }),
-                }
+            }
             );
             const auth = await authResponse.json();
             const usertoken = auth.access_token;
-            const refresh_token = auth.refresh_token; 
+            const refresh_token = auth.refresh_token;
 
             localStorage.setItem("access_token", usertoken);
-            localStorage.setItem("refresh_token", refresh_token); 
+            localStorage.setItem("refresh_token", refresh_token);
             /* const usertoken = localStorage.getItem("access_token") || ""; */
             console.log("🔄 Tokens refreshed for upload", usertoken);
             console.log("i am going", auth);
@@ -308,6 +308,7 @@ export const SnellenTest = ({ }: SnellenTestProps): JSX.Element => {
 
     // when isTracking toggles: start continuous recording; when stops -> stop+upload
     useEffect(() => {
+        // @ts-ignore
         let mounted = true;
         (async () => {
             if (isTracking) {
